@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Editar Cliente</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; font-weight: bold; }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+    }
+    .btn-secondary {
+      background-color: #ccc;
+      color: black;
+      border: none;
+    }
+    .error, .loading {
+      margin-top: 10px;
+      padding: 10px;
+    }
+    .error {
+      background-color: #fdd;
+      color: #a00;
+    }
+    .loading {
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Editar Cliente</h1>
+
+  <div id="loadingMessage" class="loading">Carregando dados do cliente...</div>
+  <div id="errorMessage" class="error" style="display: none;"></div>
+
+  <form id="editClienteForm" style="display: none;">
+    <label for="nome">Nome *</label>
+    <input type="text" id="nome" required>
+
+    <label for="telefone">Telefone *</label>
+    <input type="text" id="telefone" required>
+
+    <label for="endereco">Endereço *</label>
+    <input type="text" id="endereco" required>
+
+    <label for="observacao">Observações</label>
+    <textarea id="observacao"></textarea>
+
+    <button type="button" class="btn-secondary" onclick="window.location.href='lista-clientes.html'">Cancelar</button>
+    <button type="submit" class="btn-primary">Salvar Alterações</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const clienteId = urlParams.get('id');
+
+    if (!clienteId) {
+      document.getElementById('loadingMessage').style.display = 'none';
+      document.getElementById('errorMessage').textContent = 'ID do cliente não fornecido.';
+      document.getElementById('errorMessage').style.display = 'block';
+    } else {
+      fetch(`/clientes?busca=${clienteId}`)
+        .then(res => res.json())
+        .then(clientes => {
+          const cliente = clientes.find(c => c.id == clienteId);
+
+          if (!cliente) throw new Error('Cliente não encontrado');
+
+          document.getElementById('nome').value = cliente.nome || '';
+          document.getElementById('telefone').value = cliente.telefone || '';
+          document.getElementById('endereco').value = cliente.endereco || '';
+          document.getElementById('observacao').value = cliente.observacao || '';
+
+          document.getElementById('loadingMessage').style.display = 'none';
+          document.getElementById('editClienteForm').style.display = 'block';
+        })
+        .catch(err => {
+          console.error('Erro ao carregar cliente:', err);
+          document.getElementById('loadingMessage').style.display = 'none';
+          document.getElementById('errorMessage').textContent = 'Erro ao carregar dados do cliente.';
+          document.getElementById('errorMessage').style.display = 'block';
+        });
+    }
+
+    document.getElementById('editClienteForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const clienteAtualizado = {
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value,
+        endereco: document.getElementById('endereco').value,
+        observacao: document.getElementById('observacao').value
+      };
+
+      fetch(`/clientes/${clienteId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clienteAtualizado)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('Erro ao atualizar cliente');
+        return res.json();
+      })
+      .then(() => {
+        alert('Cliente atualizado com sucesso!');
+        window.location.href = 'lista-clientes.html';
+      })
+      .catch(error => {
+        alert('Erro ao atualizar cliente');
+        console.error(error);
+      });
+    });
+  </script>
+
+</body>
+</html>

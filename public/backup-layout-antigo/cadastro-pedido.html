@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadastro de Pedido</title>
+</head>
+<body>
+  <h1>Cadastro de Pedido</h1>
+
+  <form id="pedidoForm">
+    <label for="cliente">Cliente:</label>
+    <select id="cliente" required></select><br><br>
+
+    <label for="tipo_entrega">Tipo de Entrega:</label>
+    <select id="tipo_entrega" required>
+      <option value="Local">Local</option>
+      <option value="Entrega">Entrega</option>
+    </select><br><br>
+
+    <label for="observacao">Observação:</label><br>
+    <textarea id="observacao"></textarea><br><br>
+
+    <h2>Produtos</h2>
+    <div id="produtosContainer"></div>
+
+    <button type="submit">Cadastrar Pedido</button>
+  </form>
+
+  <script>
+    // Carregar clientes
+    fetch('/clientes')
+      .then(res => res.json())
+      .then(clientes => {
+        const select = document.getElementById('cliente');
+        clientes.forEach(cliente => {
+          const option = document.createElement('option');
+          option.value = cliente.id;
+          option.textContent = cliente.nome;
+          select.appendChild(option);
+        });
+      });
+
+    // Carregar produtos
+    fetch('/produtos')
+      .then(res => res.json())
+      .then(produtos => {
+        const container = document.getElementById('produtosContainer');
+        produtos.forEach(produto => {
+          const div = document.createElement('div');
+          div.innerHTML = `
+            <label>
+              <input type="checkbox" data-id="${produto.id}" data-nome="${produto.nome}">
+              ${produto.nome} - R$${parseFloat(produto.valor).toFixed(2)}
+            </label>
+            <input type="number" min="1" value="1" style="width: 50px;" data-qtd="${produto.id}">
+            <br><br>
+          `;
+          container.appendChild(div);
+        });
+      });
+
+    // Submeter pedido
+    document.getElementById('pedidoForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const id_cliente = document.getElementById('cliente').value;
+      const tipo_entrega = document.getElementById('tipo_entrega').value;
+      const observacao = document.getElementById('observacao').value;
+
+      const produtosSelecionados = [];
+      document.querySelectorAll('#produtosContainer input[type="checkbox"]:checked').forEach(checkbox => {
+        const id_produto = parseInt(checkbox.dataset.id);
+        const qtdInput = document.querySelector(`input[data-qtd="${id_produto}"]`);
+        const qtd_produto = parseInt(qtdInput.value) || 1;
+
+        produtosSelecionados.push({ id_produto, qtd_produto });
+      });
+
+      if (produtosSelecionados.length === 0) {
+        alert('Selecione pelo menos um produto.');
+        return;
+      }
+
+      const pedido = {
+        id_cliente: parseInt(id_cliente),
+        tipo_entrega,
+        observacao,
+        produtos: produtosSelecionados
+      };
+
+      fetch('/pedidos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pedido)
+      })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+          }
+          return res.json();
+        })
+        .then(data => {
+          alert(data.message);
+          document.getElementById('pedidoForm').reset();
+        })
+        .catch(err => {
+          console.error('Erro ao cadastrar pedido:', err);
+          alert('Erro ao cadastrar pedido: ' + (err.message || err.error));
+        });
+    });
+  </script>
+</body>
+</html>

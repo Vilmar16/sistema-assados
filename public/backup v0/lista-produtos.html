@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lista de Produtos</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    th { background-color: #eee; }
+  </style>
+</head>
+<body>
+
+  <h1>Lista de Produtos</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Categoria</th>
+        <th>Valor</th>
+        <th>Tamanho</th>
+        <th>Unidade</th>
+        <th>Qtd Máxima</th>
+      </tr>
+    </thead>
+    <tbody id="produtosBody">
+      <tr><td colspan="7">Carregando...</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    fetch('/produtos')
+      .then(res => res.json())
+      .then(produtos => {
+        const tbody = document.getElementById('produtosBody');
+        tbody.innerHTML = '';
+
+        if (produtos.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7">Nenhum produto encontrado.</td></tr>';
+          return;
+        }
+
+        produtos.forEach(p => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${p.id}</td>
+            <td>${p.nome}</td>
+            <td>${p.categoria}</td>
+            <td>R$ ${parseFloat(p.valor).toFixed(2)}</td>
+            <td>${p.tamanho || '-'}</td>
+            <td>${p.unidade || '-'}</td>
+            <td>${p.quantidade_maxima}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao carregar produtos:', err);
+        document.getElementById('produtosBody').innerHTML = '<tr><td colspan="7">Erro ao carregar dados.</td></tr>';
+      });
+  </script>
+
+</body>
+</html>

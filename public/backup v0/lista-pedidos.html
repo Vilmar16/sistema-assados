@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lista de Pedidos</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .pedido { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+    .pedido-header { font-weight: bold; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    select { margin-left: 10px; }
+    .actions { margin-top: 10px; }
+    .actions button { margin-right: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Pedidos</h1>
+
+  <div id="pedidosContainer">Carregando pedidos...</div>
+
+  <script>
+    const statusMap = {
+      1: 'Aguardando Preparo',
+      2: 'Em Preparo',
+      3: 'Finalizado',
+      4: 'Entregue',
+      5: 'Cancelado'
+    };
+
+    // Atualizar status do pedido
+    function atualizarStatusPedido(id_pedido, novoStatus) {
+      fetch(`/pedidos/${id_pedido}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ novoStatus: parseInt(novoStatus) })
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao atualizar status');
+          return res.json();
+        })
+        .then(() => {
+          alert(`Status do pedido #${id_pedido} atualizado para "${statusMap[novoStatus]}"`);
+          location.reload();
+        })
+        .catch(err => {
+          console.error('Erro ao atualizar status:', err);
+          alert('Erro ao atualizar status do pedido.');
+        });
+    }
+
+    function editarPedido(id_pedido) {
+      window.location.href = `editar-pedido.html?id=${id_pedido}`;
+    }
+
+    // Excluir pedido
+    function excluirPedido(id_pedido) {
+      if (!confirm(`Tem certeza que deseja excluir o pedido #${id_pedido}?`)) return;
+
+      fetch(`/pedidos/${id_pedido}`, {
+        method: 'DELETE'
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao excluir pedido');
+          return res.json();
+        })
+        .then(() => {
+          alert('Pedido excluído com sucesso!');
+          location.reload();
+        })
+        .catch(err => {
+          console.error(err);
+          alert('Erro ao excluir pedido.');
+        });
+    }
+
+    // Carrega todos os pedidos
+    fetch('/pedidos')
+      .then(res => res.json())
+      .then(pedidos => {
+        const container = document.getElementById('pedidosContainer');
+        if (pedidos.length === 0) {
+          container.textContent = 'Nenhum pedido encontrado.';
+          return;
+        }
+
+        container.innerHTML = '';
+
+        pedidos.forEach(pedido => {
+          const div = document.createElement('div');
+          div.classList.add('pedido');
+
+          const statusOptions = Object.entries(statusMap).map(([id, nome]) => {
+            const selected = parseInt(id) === pedido.id_status ? 'selected' : '';
+            return `<option value="${id}" ${selected}>${nome}</option>`;
+          }).join('');
+
+          div.innerHTML = `
+            <div class="pedido-header">
+              Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
+              Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
+              Status:
+              <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
+                ${statusOptions}
+              </select>
+              - Tipo Entrega: ${pedido.tipo_entrega}
+            </div>
+            <div>Observação: ${pedido.observacao || '-'}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                  <th>Preço Unit.</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${pedido.itens.map(item => `
+                  <tr>
+                    <td>${item.nome_produto}</td>
+                    <td>${item.qtd_produto}</td>
+                    <td>R$ ${item.valor.toFixed(2)}</td>
+                    <td>R$ ${(item.valor * item.qtd_produto).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
+                  <td><strong>R$ ${pedido.itens.reduce((acc, i) => acc + i.valor * i.qtd_produto, 0).toFixed(2)}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div class="actions">
+              <button onclick="editarPedido(${pedido.id_pedido})">✏️ Editar</button>
+              <button onclick="excluirPedido(${pedido.id_pedido})" style="color: red;">🗑️ Excluir</button>
+            </div>
+          `;
+
+          container.appendChild(div);
+        });
+      })
+      .catch(err => {
+        console.error('Erro ao carregar pedidos:', err);
+        document.getElementById('pedidosContainer').textContent = 'Erro ao carregar pedidos.';
+      });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Editar Pedido</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+    h1 { margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+    textarea { min-height: 80px; }
+    .produto-item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; background: #f9f9f9; }
+    .produto-item label { display: inline-block; margin-right: 10px; }
+    .produto-item input[type="number"] { width: 80px; display: inline-block; }
+    .produto-item button { margin-left: 10px; color: red; }
+    button { padding: 10px 20px; margin: 10px 5px 10px 0; cursor: pointer; }
+    .btn-primary { background: #007bff; color: white; border: none; }
+    .btn-secondary { background: #6c757d; color: white; border: none; }
+    #loading { text-align: center; padding: 50px; }
+  </style>
+</head>
+<body>
+
+  <div id="loading">Carregando pedido...</div>
+
+  <div id="formContainer" style="display: none;">
+    <h1>Editar Pedido #<span id="comandaDisplay"></span></h1>
+
+    <form id="editarPedidoForm">
+      <label for="cliente">Cliente:</label>
+      <select id="cliente" required></select>
+
+      <label for="tipo_entrega">Tipo de Entrega:</label>
+      <select id="tipo_entrega" required>
+        <option value="Local">Local</option>
+        <option value="Entrega">Entrega</option>
+      </select>
+
+      <label for="status">Status:</label>
+      <select id="status" required></select>
+
+      <label for="observacao">Observação:</label>
+      <textarea id="observacao"></textarea>
+
+      <h2>Produtos do Pedido</h2>
+      <div id="produtosAtuaisContainer"></div>
+
+      <h3>Adicionar Produtos</h3>
+      <div id="produtosDisponiveisContainer"></div>
+
+      <button type="submit" class="btn-primary">Salvar Alterações</button>
+      <button type="button" class="btn-secondary" onclick="window.location.href='lista-pedidos.html'">Cancelar</button>
+    </form>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const idPedido = urlParams.get('id');
+
+    if (!idPedido) {
+      alert('ID do pedido não fornecido');
+      window.location.href = 'lista-pedidos.html';
+    }
+
+    let pedidoAtual = null;
+    let todosClientes = [];
+    let todosProdutos = [];
+    let todosStatus = [];
+    let produtosSelecionados = [];
+
+    const statusMap = {
+      1: 'Aguardando Preparo',
+      2: 'Em Preparo',
+      3: 'Finalizado',
+      4: 'Entregue',
+      5: 'Cancelado'
+    };
+
+    // Carregar todos os dados necessários
+    Promise.all([
+      fetch(`/pedidos/${idPedido}`).then(res => res.json()),
+      fetch('/clientes').then(res => res.json()),
+      fetch('/produtos').then(res => res.json())
+    ])
+      .then(([pedido, clientes, produtos]) => {
+        pedidoAtual = pedido;
+        todosClientes = clientes;
+        todosProdutos = produtos;
+        todosStatus = Object.entries(statusMap).map(([id, nome]) => ({ id: parseInt(id), nome }));
+
+        produtosSelecionados = pedido.itens.map(item => ({
+          id_produto: item.id_produto,
+          nome_produto: item.nome_produto,
+          qtd_produto: item.qtd_produto,
+          valor: item.valor
+        }));
+
+        renderizarFormulario();
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('formContainer').style.display = 'block';
+      })
+      .catch(err => {
+        console.error('Erro ao carregar dados:', err);
+        alert('Erro ao carregar pedido');
+        window.location.href = 'lista-pedidos.html';
+      });
+
+    function renderizarFormulario() {
+      // Preencher comanda
+      document.getElementById('comandaDisplay').textContent = pedidoAtual.comanda;
+
+      // Preencher clientes
+      const selectCliente = document.getElementById('cliente');
+      todosClientes.forEach(cliente => {
+        const option = document.createElement('option');
+        option.value = cliente.id;
+        option.textContent = cliente.nome;
+        if (cliente.id === pedidoAtual.id_cliente) {
+          option.selected = true;
+        }
+        selectCliente.appendChild(option);
+      });
+
+      // Preencher tipo de entrega
+      document.getElementById('tipo_entrega').value = pedidoAtual.tipo_entrega;
+
+      // Preencher status
+      const selectStatus = document.getElementById('status');
+      todosStatus.forEach(status => {
+        const option = document.createElement('option');
+        option.value = status.id;
+        option.textContent = status.nome;
+        if (status.id === pedidoAtual.id_status) {
+          option.selected = true;
+        }
+        selectStatus.appendChild(option);
+      });
+
+      // Preencher observação
+      document.getElementById('observacao').value = pedidoAtual.observacao || '';
+
+      // Renderizar produtos atuais
+      renderizarProdutosAtuais();
+
+      // Renderizar produtos disponíveis
+      renderizarProdutosDisponiveis();
+    }
+
+    function renderizarProdutosAtuais() {
+      const container = document.getElementById('produtosAtuaisContainer');
+      container.innerHTML = '';
+
+      if (produtosSelecionados.length === 0) {
+        container.innerHTML = '<p>Nenhum produto no pedido.</p>';
+        return;
+      }
+
+      produtosSelecionados.forEach((produto, index) => {
+        const div = document.createElement('div');
+        div.classList.add('produto-item');
+        div.innerHTML = `
+          <strong>${produto.nome_produto}</strong> - R$ ${produto.valor.toFixed(2)}
+          <br>
+          <label>Quantidade:</label>
+          <input type="number" min="1" value="${produto.qtd_produto}" 
+                 onchange="atualizarQuantidade(${index}, this.value)">
+          <button type="button" onclick="removerProduto(${index})">Remover</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderizarProdutosDisponiveis() {
+      const container = document.getElementById('produtosDisponiveisContainer');
+      container.innerHTML = '';
+
+      const produtosNaoSelecionados = todosProdutos.filter(p => 
+        !produtosSelecionados.some(ps => ps.id_produto === p.id)
+      );
+
+      if (produtosNaoSelecionados.length === 0) {
+        container.innerHTML = '<p>Todos os produtos já foram adicionados.</p>';
+        return;
+      }
+
+      produtosNaoSelecionados.forEach(produto => {
+        const div = document.createElement('div');
+        div.classList.add('produto-item');
+        div.innerHTML = `
+          <strong>${produto.nome}</strong> - R$ ${parseFloat(produto.valor).toFixed(2)}
+          <br>
+          <label>Quantidade:</label>
+          <input type="number" min="1" value="1" id="qtd-${produto.id}">
+          <button type="button" onclick="adicionarProduto(${produto.id})">Adicionar</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function atualizarQuantidade(index, novaQtd) {
+      produtosSelecionados[index].qtd_produto = parseInt(novaQtd);
+    }
+
+    function removerProduto(index) {
+      produtosSelecionados.splice(index, 1);
+      renderizarProdutosAtuais();
+      renderizarProdutosDisponiveis();
+    }
+
+    function adicionarProduto(idProduto) {
+      const produto = todosProdutos.find(p => p.id === idProduto);
+      const qtdInput = document.getElementById(`qtd-${idProduto}`);
+      const qtd = parseInt(qtdInput.value) || 1;
+
+      produtosSelecionados.push({
+        id_produto: produto.id,
+        nome_produto: produto.nome,
+        qtd_produto: qtd,
+        valor: parseFloat(produto.valor)
+      });
+
+      renderizarProdutosAtuais();
+      renderizarProdutosDisponiveis();
+    }
+
+    // Submeter formulário
+    document.getElementById('editarPedidoForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      if (produtosSelecionados.length === 0) {
+        alert('O pedido deve ter pelo menos um produto.');
+        return;
+      }
+
+      const dadosAtualizados = {
+        id_cliente: parseInt(document.getElementById('cliente').value),
+        tipo_entrega: document.getElementById('tipo_entrega').value,
+        id_status: parseInt(document.getElementById('status').value),
+        observacao: document.getElementById('observacao').value,
+        produtos: produtosSelecionados.map(p => ({
+          id_produto: p.id_produto,
+          qtd_produto: p.qtd_produto
+        }))
+      };
+
+      fetch(`/pedidos/${idPedido}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dadosAtualizados)
+      })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+          }
+          return res.json();
+        })
+        .then(data => {
+          alert('Pedido atualizado com sucesso!');
+          window.location.href = 'lista-pedidos.html';
+        })
+        .catch(err => {
+          console.error('Erro ao atualizar pedido:', err);
+          alert('Erro ao atualizar pedido: ' + (err.error || err.message || 'Erro desconhecido'));
+        });
+    });
+  </script>
+
+</body>
+</html>

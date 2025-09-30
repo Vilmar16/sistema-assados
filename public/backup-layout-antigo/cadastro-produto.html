@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadastro de Produto</title>
+</head>
+<body>
+  <h1>Cadastro de Produto</h1>
+  <form id="produtoForm">
+    <input type="text" id="nome" placeholder="Nome" required /><br />
+    <input type="text" id="tamanho" placeholder="Tamanho (ex: pequeno, médio)" /><br />
+    <input type="number" id="valor" placeholder="Valor (ex: 10.50)" step="0.01" required /><br />
+    <input type="number" id="quantidade_maxima" placeholder="Quantidade máxima" /><br />
+    <input type="text" id="categoria" placeholder="Categoria (ex: frango, carne)" /><br />
+    <input type="text" id="unidade" placeholder="Unidade (ex: kg, un)" /><br />
+    <button type="submit">Cadastrar Produto</button>
+  </form>
+
+  <script>
+    document.getElementById('produtoForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const produto = {
+        nome: document.getElementById('nome').value,
+        tamanho: document.getElementById('tamanho').value,
+        valor: parseFloat(document.getElementById('valor').value),
+        quantidade_maxima: parseInt(document.getElementById('quantidade_maxima').value) || null,
+        categoria: document.getElementById('categoria').value,
+        unidade: document.getElementById('unidade').value,
+      };
+
+      fetch('/produtos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(produto),
+      })
+        .then((res) => {
+          const contentType = res.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Servidor retornou ${res.status}: ${res.statusText}. Verifique se o servidor está rodando.`);
+          }
+          
+          if (!res.ok) {
+            return res.json().then(err => Promise.reject(err));
+          }
+          return res.json();
+        })
+        .then((data) => {
+          alert(data.message || 'Produto cadastrado com sucesso!');
+          document.getElementById('produtoForm').reset();
+          console.log('Produto cadastrado:', data);
+        })
+        .catch((err) => {
+          console.error('Erro completo:', err);
+          let errorMessage = 'Erro ao cadastrar produto';
+          
+          if (typeof err === 'string') {
+            errorMessage = err;
+          } else if (err.error) {
+            errorMessage = err.error;
+            if (err.details) errorMessage += `\nDetalhes: ${err.details}`;
+          } else if (err.message) {
+            errorMessage = err.message;
+          }
+          
+          alert(errorMessage);
+        });
+    });
+  </script>
+</body>
+</html>
