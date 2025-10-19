@@ -308,6 +308,49 @@
         width: 100%;
       }
     }
+
+    .novo-pedido-container {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .btn-novo-pedido {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn-novo-pedido:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
+    .novo-pedido-container {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .btn-novo-pedido {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn-novo-pedido:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
   </style>
 </head>
 <body>
@@ -321,7 +364,6 @@
       </div>
       <nav id="nav">
         <a href="index.html">Início</a>
-        <a href="cadastro-cliente.html">Cadastrar Cliente</a>
         <a href="lista-clientes.html">Listar Clientes</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
@@ -331,6 +373,12 @@
     <div class="content">
       <h1>Lista de Pedidos (Completa)</h1>
 
+      <div class="novo-pedido-container">
+        <button class="btn-novo-pedido" onclick="criarNovoPedido()">
+          ➕ Criar Novo Pedido
+        </button>
+      </div>
+
       <div id="pedidosContainer">Carregando pedidos...</div>
     </div>
   </div>
@@ -339,6 +387,10 @@
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
+    }
+
+    function criarNovoPedido() {
+      window.location.href = 'cadastro-pedido.html'; // Altere o link se a página de criação for diferente
     }
 
     const statusMap = {

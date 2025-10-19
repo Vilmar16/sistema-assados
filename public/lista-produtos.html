@@ -147,6 +147,27 @@
         padding: 8px;
       }
     }
+    .novo-produto-container {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .btn-novo-produto {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn-novo-produto:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
   </style>
 </head>
 <body>
@@ -160,7 +181,6 @@
       </div>
       <nav id="nav">
         <a href="index.html">Início</a>
-        <a href="cadastro-cliente.html">Cadastrar Cliente</a>
         <a href="lista-clientes.html">Listar Clientes</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
@@ -168,7 +188,14 @@
     </header>
 
     <div class="content">
+
       <h1>Lista de Produtos</h1>
+      
+      <div class="novo-produto-container">
+        <button class="btn-novo-produto" onclick="criarNovoProduto()">
+          ➕ Criar Novo Produto
+        </button>
+      </div>
 
       <table>
         <thead>
@@ -193,6 +220,10 @@
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
+    }
+
+    function criarNovoProduto() {
+      window.location.href = 'cadastro-produto.html'; // Altere o link se a página de criação for diferente
     }
 
     fetch('/produtos')

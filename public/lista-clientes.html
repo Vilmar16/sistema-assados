@@ -178,6 +178,27 @@
         padding: 8px;
       }
     }
+    .novo-cliente-container {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .btn-novo-cliente {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn-novo-cliente:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
   </style>
 </head>
 <body>
@@ -191,7 +212,6 @@
       </div>
       <nav id="nav">
         <a href="index.html">Início</a>
-        <a href="cadastro-cliente.html">Cadastrar Cliente</a>
         <a href="lista-clientes.html">Listar Clientes</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
@@ -199,7 +219,14 @@
     </header>
 
     <div class="content">
+      
       <h1>Lista de Clientes</h1>
+
+      <div class="novo-cliente-container">
+        <button class="btn-novo-cliente" onclick="criarNovoCliente()">
+          ➕ Criar Novo Cliente
+        </button>
+      </div>
 
       <table>
         <thead>
@@ -223,6 +250,10 @@
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
+    }
+
+    function criarNovoCliente() {
+      window.location.href = 'cadastro-cliente.html'; // Altere o link se a página de criação for diferente
     }
 
     function carregarClientes() {
