@@ -1,0 +1,6 @@
+#Pendente
+
+-modificar produto
+-fazer com que os pedidos categoria carne sejam removidos da lista, conforme status concluido
+-regra do 3 por 10 da linguiça e 3 por 12 do medalhão
+-incluir filtro  de busca no lista de pedido completo (caixa)

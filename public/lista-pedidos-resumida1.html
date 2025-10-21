@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lista de Pedidos</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { margin-bottom: 20px; }
+    .pedido { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+    .pedido-header { font-weight: bold; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+
+  <h1>Pedidos (Carnes)</h1>
+
+  <div id="pedidosContainer">Carregando pedidos...</div>
+
+  <script>
+    const statusMap = {
+      1: 'Aguardando Preparo',
+      2: 'Em Preparo',
+      3: 'Finalizado',
+      4: 'Entregue',
+      5: 'Cancelado'
+    };
+
+    // Carrega todos os pedidos
+    fetch('/pedidos')
+      .then(res => res.json())
+      .then(pedidos => {
+        
+        console.log('Pedidos recebidos:', pedidos);
+
+        const container = document.getElementById('pedidosContainer');
+        if (!Array.isArray(pedidos) || pedidos.length === 0) {
+          container.textContent = 'Nenhum pedido encontrado.';
+          return;
+        }
+
+        // Ordena pedidos por ID crescente
+        pedidos.sort((a, b) => a.comanda - b.comanda);
+
+
+        container.innerHTML = '';
+
+        pedidos.forEach(pedido => {
+          // Filtra apenas os itens com categoria "Carne"
+          const itensCarne = pedido.itens.filter(item => {
+            return item.categoria && item.categoria.toLowerCase() === 'carne';
+          });
+
+          // Se não tiver itens da categoria "Carne", pula o pedido
+          if (itensCarne.length === 0) return;
+
+          const div = document.createElement('div');
+          div.classList.add('pedido');
+
+          const statusTexto = statusMap[pedido.id_status] || 'Desconhecido';
+
+          div.innerHTML = `
+            <div class="pedido-header">
+              Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
+              Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
+              Status: <strong>${statusTexto}</strong> - Tipo: ${pedido.tipo_entrega}
+            </div>
+            <div>Observação: ${pedido.observacao || '-'}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Quantidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itensCarne.map(item => `
+                  <tr>
+                    <td>${item.nome_produto}</td>
+                    <td>${item.qtd_produto}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+
+          container.appendChild(div);
+        });
+
+        // Caso todos os pedidos tenham sido filtrados
+        if (container.innerHTML.trim() === '') {
+          container.textContent = 'Nenhum pedido com itens da categoria "Carne" encontrado.';
+        }
+      })
+      .catch(err => {
+        console.error('Erro ao carregar pedidos:', err);
+        document.getElementById('pedidosContainer').textContent = 'Erro ao carregar pedidos.';
+      });
+  </script>
+
+</body>
+</html>

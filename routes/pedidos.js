@@ -94,7 +94,7 @@ router.get("/", async (req, res) => {
     const pedidosComItens = await Promise.all(
       pedidos.map(async (pedido) => {
         const [itens] = await pool.query(
-          `SELECT ip.qtd_produto, pr.nome AS nome_produto, CAST(pr.valor AS DECIMAL(10,2)) AS valor FROM itenspedido ip JOIN produto pr ON ip.id_produto = pr.id WHERE ip.id_pedido = ?`,
+          `SELECT ip.qtd_produto, pr.nome AS nome_produto, CAST(pr.valor AS DECIMAL(10,2)) AS valor, pr.categoria FROM itenspedido ip JOIN produto pr ON ip.id_produto = pr.id WHERE ip.id_pedido = ?`,
           [pedido.id_pedido],
         )
 
@@ -149,7 +149,8 @@ router.get("/:id", async (req, res) => {
         ip.id_produto,
         ip.qtd_produto,
         pr.nome AS nome_produto,
-        CAST(pr.valor AS DECIMAL(10,2)) AS valor
+        CAST(pr.valor AS DECIMAL(10,2)) AS valor,
+        pr.categoria 
       FROM itenspedido ip
       JOIN produto pr ON ip.id_produto = pr.id
       WHERE ip.id_pedido = ?

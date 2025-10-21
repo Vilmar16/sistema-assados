@@ -343,6 +343,7 @@
     fetch('/pedidos')
       .then(res => res.json())
       .then(pedidos => {
+        pedidos.sort((a, b) => a.comanda - b.comanda);
         const container = document.getElementById('pedidosContainer');
         if (pedidos.length === 0) {
           container.textContent = 'Nenhum pedido encontrado.';
@@ -368,7 +369,7 @@
               <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
                 ${statusOptions}
               </select>
-              - Tipo Entrega: ${pedido.tipo_entrega}
+              - Tipo: ${pedido.tipo_entrega}
             </div>
             <div>Observação: ${pedido.observacao || '-'}</div>
             <table>
