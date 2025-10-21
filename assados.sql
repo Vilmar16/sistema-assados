@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Tempo de geração: 30/09/2025 às 00:03
+-- Tempo de geração: 21/10/2025 às 02:55
 -- Versão do servidor: 9.1.0
 -- Versão do PHP: 8.3.14
 
@@ -37,17 +37,14 @@ CREATE TABLE IF NOT EXISTS `cliente` (
   `endereco` varchar(255) NOT NULL,
   `observacao` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Despejando dados para a tabela `cliente`
 --
 
 INSERT INTO `cliente` (`id`, `nome`, `telefone`, `endereco`, `observacao`) VALUES
-(1, '#null', '', '', ''),
-(2, 'Victor Mateus Teixeira Da Cruz', '41 996204282', 'Rua Habib Sarkis, 173', ''),
-(3, 'Gabriel Schultz', '41 99620-2309', 'Rua Habib Sarkis, 173', ''),
-(4, 'Danielle', '41996358178', 'Rua Habib Sarkis, 173', '');
+(1, 'Anônimo ', '', 'n/a', '');
 
 -- --------------------------------------------------------
 
@@ -67,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `controle_comanda` (
 --
 
 INSERT INTO `controle_comanda` (`id`, `comanda`) VALUES
-(1, 25);
+(1, 29);
 
 -- --------------------------------------------------------
 
@@ -84,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `itenspedido` (
   PRIMARY KEY (`id`),
   KEY `fk_itenspedido_pedido` (`id_pedido`),
   KEY `fk_itenspedido_produto` (`id_produto`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Despejando dados para a tabela `itenspedido`
@@ -92,7 +89,11 @@ CREATE TABLE IF NOT EXISTS `itenspedido` (
 
 INSERT INTO `itenspedido` (`id`, `id_pedido`, `id_produto`, `qtd_produto`) VALUES
 (29, 24, 6, 1),
-(30, 25, 1, 1);
+(31, 25, 1, 1),
+(32, 25, 2, 1),
+(36, 27, 6, 2),
+(37, 28, 6, 6),
+(38, 29, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -110,14 +111,16 @@ CREATE TABLE IF NOT EXISTS `pagamento` (
   `data_pagamento` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_pedido` (`id_pedido`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Despejando dados para a tabela `pagamento`
 --
 
 INSERT INTO `pagamento` (`id`, `id_pedido`, `status`, `tipo_pagamento`, `valor_pago`, `data_pagamento`) VALUES
-(4, 25, 'Pago', 'Debito', 60.00, '2025-09-29 20:40:39');
+(13, 25, 'Pago', 'Dinheiro', 60.00, '2025-09-29 21:33:48'),
+(14, 24, 'Pago', 'Debito', 25.00, '2025-09-29 21:33:57'),
+(15, 27, 'Pago', 'Dinheiro', 100.00, '2025-10-04 18:40:18');
 
 -- --------------------------------------------------------
 
@@ -139,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `pedido` (
   KEY `id_pagamento` (`id_pagamento`),
   KEY `fk_pedido_cliente` (`id_cliente`),
   KEY `fk_pedido_status` (`id_status`)
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Despejando dados para a tabela `pedido`
@@ -147,7 +150,10 @@ CREATE TABLE IF NOT EXISTS `pedido` (
 
 INSERT INTO `pedido` (`id`, `id_cliente`, `data_hora`, `id_status`, `tipo_entrega`, `id_pagamento`, `observacao`, `comanda`) VALUES
 (24, 1, '2025-09-29 20:39:05', 1, 'Entrega', NULL, '', 11),
-(25, 1, '2025-09-29 20:39:29', 3, 'Local', NULL, '', 24);
+(25, 1, '2025-09-29 20:39:29', 3, 'Local', NULL, '', 24),
+(27, 1, '2025-10-04 18:35:03', 3, 'Local', NULL, '', 26),
+(28, 1, '2025-10-04 18:36:41', 1, 'Local', NULL, '', 27),
+(29, 1, '2025-10-20 22:30:38', 1, 'Local', NULL, '', 28);
 
 -- --------------------------------------------------------
 
@@ -172,14 +178,14 @@ CREATE TABLE IF NOT EXISTS `produto` (
 --
 
 INSERT INTO `produto` (`id`, `nome`, `tamanho`, `valor`, `quantidade_maxima`, `categoria`, `unidade`) VALUES
-(1, 'Frango assado', NULL, 55.00, 9, 'Carne', 'Un'),
-(2, 'Costela assada', '', 68.00, 14, 'Carne', 'Kg'),
+(1, 'Frango assado', NULL, 55.00, 8, 'Carne', 'Un'),
+(2, 'Costela assada', '', 68.00, 13, 'Carne', 'Kg'),
 (3, 'Coxa sobrecoxa', '', 15.00, 10, 'Carne', 'Un'),
 (4, 'Linguiça', '', 4.00, 30, 'Carne', 'Un'),
-(5, 'Medalhão de porco', '', 5.00, 35, 'Carne', 'Un'),
-(6, 'Risoto', 'Média', 25.00, 9, 'Acompanhamento', 'Un'),
-(7, 'Maionese', 'Média', 25.00, 10, 'Acompanhamento', 'Un'),
-(8, 'Coca-cola 2L', '2 litros', 15.00, 3, 'Bebida', 'Un'),
+(5, 'Medalhão de porco', '', 5.00, 33, 'Carne', 'Un'),
+(6, 'Risoto', 'M', 25.00, 0, 'Acompanhamento', 'Un'),
+(7, 'Maionese', 'M', 25.00, 10, 'Acompanhamento', 'Un'),
+(8, 'Coca-cola 2L', '2 litros', 15.00, 2, 'Bebida', 'Un'),
 (9, 'Cini 2L', '2 litros', 8.50, 0, 'Bebida', 'Un'),
 (10, 'Refrigerante (lata)', 'Lata', 5.00, 5, 'Bebida', 'Un');
 
