@@ -1,0 +1,5 @@
+# Ignorar arquivos sensíveis e dependências
+node_modules/
+.env
+ca.pem
+*.log
