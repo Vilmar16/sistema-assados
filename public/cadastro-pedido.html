@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cadastro de Pedido - Assados de Domingo</title>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     * {
       margin: 0;
@@ -90,6 +91,14 @@
       text-align: center;
     }
 
+    /* Adicionar estilo para seção de combos */
+    .content h2 {
+      color: #667eea;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+
     form label {
       display: block;
       margin-top: 15px;
@@ -113,7 +122,7 @@
       border-color: #667eea;
     }
 
-    #produtosContainer > div {
+    #produtosContainer > div, #combosContainer > div {
       margin-top: 15px;
       display: flex;
       align-items: center;
@@ -121,15 +130,42 @@
       flex-wrap: wrap;
     }
 
-    #produtosContainer label {
+    #produtosContainer label, #combosContainer label {
       cursor: pointer;
       flex: 1 1 70%;
       user-select: none;
     }
 
-    #produtosContainer input[type="number"] {
-      flex: 0 0 70px;
+    .produto-qty-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex: 0 0 auto;
+    }
+
+    .produto-qty-group input[type="number"] {
+      width: 70px;
       max-width: 70px;
+      margin: 0;
+    }
+
+    .produto-qty-group select {
+      width: auto;
+      max-width: 60px;
+      margin: 0;
+      padding: 8px 5px;
+    }
+
+    /* Badge para diferenciar combos visualmente */
+    .combo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 5px;
     }
 
     button[type="submit"] {
@@ -175,12 +211,22 @@
         padding: 20px;
       }
 
-      #produtosContainer > div {
+      #produtosContainer > div, #combosContainer > div {
         flex-direction: column;
         align-items: flex-start;
       }
 
-      #produtosContainer input[type="number"] {
+      .produto-qty-group {
+        width: 100%;
+        flex: 1;
+      }
+
+      .produto-qty-group input[type="number"] {
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .produto-qty-group select {
         max-width: 100%;
         width: 100%;
       }
@@ -199,7 +245,8 @@
       <nav id="nav">
         <a href="index.html">Início</a>
         <a href="lista-clientes.html">Listar Clientes</a>
-        <a href="lista-produtos.html">Listar Produtos</a>
+        <a href="lista-combos.html">Listar Combos</a>
+        <a href="lista-produtos.html">Listar Produtos</a> 
         <a href="lista-pedidos.html">Listar Pedidos</a>
       </nav>
     </header>
@@ -220,8 +267,12 @@
         <label for="observacao">Observação:</label>
         <textarea id="observacao" rows="4"></textarea>
 
-        <h2 style="margin-top:30px;">Produtos</h2>
+        <h2>Produtos</h2>
         <div id="produtosContainer"></div>
+
+        <!-- Nova seção para combos -->
+        <h2>Combos</h2>
+        <div id="combosContainer"></div>
 
         <button type="submit">Cadastrar Pedido</button>
       </form>
@@ -229,49 +280,152 @@
   </div>
 
   <script>
+    const socket = io();
+
+    socket.on('connect', () => {
+      console.log('[v0] Socket.IO conectado');
+    });
+
+    socket.on('cliente:created', () => {
+      carregarClientes();
+    });
+
+    socket.on('cliente:updated', () => {
+      carregarClientes();
+    });
+
+    socket.on('cliente:deleted', () => {
+      carregarClientes();
+    });
+
+    socket.on('produto:created', () => {
+      carregarProdutos();
+    });
+
+    socket.on('produto:updated', () => {
+      carregarProdutos();
+    });
+
+    socket.on('produto:deleted', () => {
+      carregarProdutos();
+    });
+
+    socket.on('combo:criado', () => {
+      carregarCombos();
+    });
+
+    socket.on('combo:atualizado', () => {
+      carregarCombos();
+    });
+
+    socket.on('combo:excluido', () => {
+      carregarCombos();
+    });
+
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
     }
 
-    // Carregar clientes
-    fetch('/clientes')
-      .then(res => res.json())
-      .then(clientes => {
-        const select = document.getElementById('cliente');
-        clientes.forEach(cliente => {
-          const option = document.createElement('option');
-          option.value = cliente.id;
-          option.textContent = cliente.nome;
-          select.appendChild(option);
+    function carregarClientes() {
+      fetch('/clientes')
+        .then(res => res.json())
+        .then(clientes => {
+          const select = document.getElementById('cliente');
+          const valorAtual = select.value;
+          select.innerHTML = '';
+          
+          clientes.forEach(cliente => {
+            const option = document.createElement('option');
+            option.value = cliente.id;
+            option.textContent = cliente.nome;
+            select.appendChild(option);
+          });
+          
+          if (valorAtual) {
+            select.value = valorAtual;
+          }
+        })
+        .catch(() => {
+          alert('Erro ao carregar clientes.');
         });
-      })
-      .catch(() => {
-        alert('Erro ao carregar clientes.');
-      });
+    }
 
-    // Carregar produtos
-    fetch('/produtos')
-      .then(res => res.json())
-      .then(produtos => {
-        const container = document.getElementById('produtosContainer');
-        produtos.forEach(produto => {
-          const div = document.createElement('div');
-          div.innerHTML = `
-            <label>
-              <input type="checkbox" data-id="${produto.id}" data-nome="${produto.nome}">
-              ${produto.nome} - R$${parseFloat(produto.valor).toFixed(2)}
-            </label>
-            <input type="number" min="1" value="1" data-qtd="${produto.id}">
-          `;
-          container.appendChild(div);
+    function carregarProdutos() {
+      fetch('/produtos')
+        .then(res => res.json())
+        .then(produtos => {
+          const container = document.getElementById('produtosContainer');
+          container.innerHTML = '';
+          
+          produtos.forEach(produto => {
+            const div = document.createElement('div');
+            const isKg = produto.unidade && produto.unidade.toLowerCase() === 'kg';
+            
+            let qtdHTML = '';
+            if (isKg) {
+              qtdHTML = `
+                <div class="produto-qty-group">
+                  <input type="number" min="1" value="1000" data-qtd="${produto.id}" data-unidade="g" placeholder="Qtd em g">
+                  <select data-unidade-select="${produto.id}">
+                    <option value="g">Gramas</option>
+                    <option value="kg">Kg</option>
+                  </select>
+                </div>
+              `;
+            } else {
+              qtdHTML = `<input type="number" min="1" value="1" data-qtd="${produto.id}">`;
+            }
+            
+            div.innerHTML = `
+              <label>
+                <input type="checkbox" data-id="${produto.id}" data-nome="${produto.nome}" data-unidade="${produto.unidade || 'un'}">
+                ${produto.nome} - R$${parseFloat(produto.valor).toFixed(2)}${isKg ? '/kg' : ''}
+              </label>
+              ${qtdHTML}
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch(() => {
+          alert('Erro ao carregar produtos.');
         });
-      })
-      .catch(() => {
-        alert('Erro ao carregar produtos.');
-      });
+    }
 
-    // Submeter pedido
+    function carregarCombos() {
+      fetch('/combos')
+        .then(res => res.json())
+        .then(combos => {
+          const container = document.getElementById('combosContainer');
+          container.innerHTML = '';
+          
+          if (combos.length === 0) {
+            container.innerHTML = '<p style="color: #999;">Nenhum combo disponível</p>';
+            return;
+          }
+          
+          combos.forEach(combo => {
+            const div = document.createElement('div');
+            
+            div.innerHTML = `
+              <label>
+                <input type="checkbox" data-combo-id="${combo.id}" data-combo-nome="${combo.nome}">
+                ${combo.nome} - R$${parseFloat(combo.valor).toFixed(2)} 
+              </label>
+              <input type="number" min="1" value="1" data-combo-qtd="${combo.id}">
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch(() => {
+          alert('Erro ao carregar combos.');
+        });
+    }
+
+    carregarClientes();
+    carregarProdutos();
+    carregarCombos();
+
     document.getElementById('pedidoForm').addEventListener('submit', function (e) {
       e.preventDefault();
 
@@ -282,23 +436,61 @@
       const produtosSelecionados = [];
       document.querySelectorAll('#produtosContainer input[type="checkbox"]:checked').forEach(checkbox => {
         const id_produto = parseInt(checkbox.dataset.id);
+        const unidade = checkbox.dataset.unidade;
         const qtdInput = document.querySelector(`input[data-qtd="${id_produto}"]`);
-        const qtd_produto = parseInt(qtdInput.value) || 1;
+        let qtd_produto = parseInt(qtdInput.value) || 1;
 
-        produtosSelecionados.push({ id_produto, qtd_produto });
+        if (unidade.toLowerCase() === 'kg') {
+          const unidadeSelect = document.querySelector(`select[data-unidade-select="${id_produto}"]`);
+          const unidadeSelecionada = unidadeSelect ? unidadeSelect.value : 'g';
+          
+          if (unidadeSelecionada === 'kg') {
+            qtd_produto = qtd_produto * 1000;
+          }
+        }
+
+        console.log('[v0] Produto selecionado:', { id_produto, qtd_produto, unidade });
+        produtosSelecionados.push({ id_produto, qtd_produto, unidade });
       });
 
-      if (produtosSelecionados.length === 0) {
-        alert('Selecione pelo menos um produto.');
+      const combosSelecionados = [];
+      document.querySelectorAll('#combosContainer input[type="checkbox"]:checked').forEach(checkbox => {
+        const id_combo = parseInt(checkbox.dataset.comboId);
+        const nome_combo = checkbox.dataset.comboNome;
+        const qtdInput = document.querySelector(`input[data-combo-qtd="${id_combo}"]`);
+        const qtd_combo = parseInt(qtdInput.value) || 1;
+
+        console.log('[v0] Combo checkbox encontrado:', {
+          id_combo,
+          nome_combo,
+          qtd_combo,
+          dataset: checkbox.dataset
+        });
+
+        if (id_combo && !isNaN(id_combo)) {
+          combosSelecionados.push({ id_combo, qtd_combo });
+        } else {
+          console.error('[v0] Combo inválido:', { id_combo, nome_combo });
+        }
+      });
+
+      console.log('[v0] Total produtos selecionados:', produtosSelecionados.length);
+      console.log('[v0] Total combos selecionados:', combosSelecionados.length);
+
+      if (produtosSelecionados.length === 0 && combosSelecionados.length === 0) {
+        alert('Selecione pelo menos um produto ou combo.');
         return;
       }
 
       const pedido = {
         id_cliente: parseInt(id_cliente),
         tipo_entrega,
-        observacao,
-        produtos: produtosSelecionados
+        observacao: observacao || '',
+        produtos: produtosSelecionados,
+        combos: combosSelecionados
       };
+
+      console.log('[v0] Enviando pedido completo:', JSON.stringify(pedido, null, 2));
 
       fetch('/pedidos', {
         method: 'POST',
@@ -306,18 +498,25 @@
         body: JSON.stringify(pedido)
       })
         .then(res => {
+          console.log('[v0] Resposta do servidor - Status:', res.status);
           if (!res.ok) {
-            return res.json().then(err => Promise.reject(err));
+            return res.json().then(err => {
+              console.error('[v0] Erro do servidor:', err);
+              return Promise.reject(err);
+            });
           }
           return res.json();
         })
         .then(data => {
+          console.log('[v0] Pedido criado com sucesso:', data);
           alert(data.message || 'Pedido cadastrado com sucesso!');
           document.getElementById('pedidoForm').reset();
+          carregarProdutos();
+          carregarCombos();
         })
         .catch(err => {
-          console.error('Erro ao cadastrar pedido:', err);
-          alert('Erro ao cadastrar pedido: ' + (err.message || err.error || 'Erro desconhecido'));
+          console.error('[v0] Erro ao cadastrar pedido:', err);
+          alert('Erro ao cadastrar pedido: ' + (err.error || err.message || 'Erro desconhecido'));
         });
     });
   </script>

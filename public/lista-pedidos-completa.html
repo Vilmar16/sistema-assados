@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lista de Pedidos Completa - Assados de Domingo</title>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     * {
       margin: 0;
@@ -110,6 +111,34 @@
 
     .pedido-header strong {
       color: #667eea;
+    }
+
+    /* Added status badge styling */
+    .status-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin-left: 10px;
+      font-size: 14px;
+    }
+
+    .status-1 { background-color: #fff3cd; color: #856404; } /* Aguardando */
+    .status-2 { background-color: #cfe2ff; color: #084298; } /* Em Preparo */
+    .status-3 { background-color: #d1e7dd; color: #0f5132; } /* Finalizado */
+    .status-4 { background-color: #e2e3e5; color: #383d41; } /* Entregue */
+    .status-5 { background-color: #f8d7da; color: #842029; } /* Cancelado */
+
+    /* Badge para diferenciar combos visualmente */
+    .combo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 5px;
     }
 
     table {
@@ -329,28 +358,6 @@
       background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
       transform: translateY(-2px);
     }
-
-    .novo-pedido-container {
-      text-align: right;
-      margin-bottom: 20px;
-    }
-
-    .btn-novo-pedido {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 10px 20px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
-    }
-
-    .btn-novo-pedido:hover {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-      transform: translateY(-2px);
-    }
-
   </style>
 </head>
 <body>
@@ -365,6 +372,7 @@
       <nav id="nav">
         <a href="index.html">Início</a>
         <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
       </nav>
@@ -373,7 +381,15 @@
     <div class="content">
       <h1>Lista de Pedidos (Completa)</h1>
 
-      <div class="novo-pedido-container">
+      <div class="actions-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 10px;">
+        <select id="filtro-status" class="filtro-select" style="padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc;">
+          <option value="">Filtrar por Status</option>
+          <option value="1">Aguardando Preparo</option>
+          <option value="2">Em Preparo</option>
+          <option value="3">Finalizado</option>
+          <option value="5">Cancelado</option>
+        </select>
+
         <button class="btn-novo-pedido" onclick="criarNovoPedido()">
           ➕ Criar Novo Pedido
         </button>
@@ -384,13 +400,40 @@
   </div>
 
   <script>
+    const socket = io();
+
+    socket.on('pedido:criado', () => {
+      console.log('[v0] Novo pedido criado - recarregando lista');
+      location.reload();
+    });
+
+    socket.on('pedido:atualizado', () => {
+      console.log('[v0] Pedido atualizado - recarregando lista');
+      location.reload();
+    });
+
+    socket.on('pedido:status-atualizado', () => {
+      console.log('[v0] Status de pedido atualizado - recarregando lista');
+      location.reload();
+    });
+
+    socket.on('pedido:excluido', () => {
+      console.log('[v0] Pedido excluído - recarregando lista');
+      location.reload();
+    });
+
+    socket.on('pagamento:registrado', () => {
+      console.log('[v0] Pagamento registrado - recarregando lista');
+      location.reload();
+    });
+
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
     }
 
     function criarNovoPedido() {
-      window.location.href = 'cadastro-pedido.html'; // Altere o link se a página de criação for diferente
+      window.location.href = 'cadastro-pedido.html';
     }
 
     const statusMap = {
@@ -400,6 +443,8 @@
       4: 'Entregue',
       5: 'Cancelado'
     };
+
+    let arrayPedidos = [];
 
     function atualizarStatusPedido(id_pedido, novoStatus) {
       fetch(`/pedidos/${id_pedido}/status`, {
@@ -413,7 +458,7 @@
       })
       .then(() => {
         alert(`Status do pedido #${id_pedido} atualizado para "${statusMap[novoStatus]}"`);
-        location.reload();
+        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error('Erro ao atualizar status:', err);
@@ -437,7 +482,7 @@
       })
       .then(() => {
         alert('Pedido excluído com sucesso!');
-        location.reload();
+        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error('Erro ao excluir pedido:', err);
@@ -472,7 +517,7 @@
       })
       .then(() => {
         alert('Pagamento registrado com sucesso');
-        location.reload();
+        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error(err);
@@ -480,119 +525,137 @@
       });
     }
 
+    async function renderizarPedidos(lista) {
+      const container = document.getElementById('pedidosContainer');
+      container.innerHTML = '';
+
+      if (lista.length === 0) {
+        container.textContent = 'Nenhum pedido encontrado.';
+        return;
+      }
+
+      async function buscarPagamentos(idPedido) {
+        const res = await fetch(`/pagamentos/${idPedido}`);
+        if (!res.ok) return [];
+        return res.json();
+      }
+
+      for (const pedido of lista) {
+        const pagamentos = await buscarPagamentos(pedido.id_pedido);
+
+        const div = document.createElement('div');
+        div.classList.add('pedido');
+
+        const statusOptions = Object.entries(statusMap).map(([id, nome]) => {
+          const selected = parseInt(id) === pedido.id_status ? 'selected' : '';
+          return `<option value="${id}" ${selected}>${nome}</option>`;
+        }).join('');
+
+        const totalPedido = pedido.itens.reduce((acc, i) => acc + i.subtotal, 0);
+
+        const itensHTML = pedido.itens.map(item => {
+          const isCombo = item.tipo === 'combo';
+          const badge = isCombo ? ' <span class="combo-badge">COMBO</span>' : '';
+          return `
+            <tr>
+              <td>${item.nome_produto}${badge}</td>
+              <td>${item.qtd_produto}</td>
+              <td>R$ ${item.valor.toFixed(2)}</td>
+              <td>R$ ${item.subtotal.toFixed(2)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        div.innerHTML = `
+          <div class="pedido-header">
+            Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
+            Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
+            Status:
+            <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
+              ${statusOptions}
+            </select>
+            - Tipo: ${pedido.tipo_entrega}
+          </div>
+          <div>Observação: ${pedido.observacao || '-'}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Preço Unit.</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itensHTML}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
+                <td><strong>R$ ${totalPedido.toFixed(2)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="pagamento-section">
+            <h3>Pagamentos</h3>
+            <div class="pagamento-list" id="pagamentosDoPedido-${pedido.id_pedido}">
+              ${pagamentos.length === 0
+                ? '<p>Nenhum pagamento registrado.</p>'
+                : pagamentos.map(p => `
+                  <div class="pagamento-item">
+                    <strong>Tipo:</strong> ${p.tipo_pagamento} | <strong>Valor:</strong> R$ ${parseFloat(p.valor_pago).toFixed(2)} | <strong>Status:</strong> ${p.status}
+                  </div>
+                `).join('')}
+            </div>
+
+            <form onsubmit="registrarPagamento(event, ${pedido.id_pedido})">
+              <label>
+                Tipo de pagamento:
+                <select name="tipo_pagamento" required>
+                  <option value="">Selecione</option>
+                  <option value="Debito">Débito</option>
+                  <option value="Credito">Crédito</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Pix">Pix</option>
+                </select>
+              </label>
+              <label>
+                Valor:
+                <input type="number" step="0.01" name="valor_pago" required />
+              </label>
+              <button type="submit">Registrar pagamento</button>
+            </form>
+          </div>
+
+          <div class="actions">
+            <button class="btn-edit" onclick="editarPedido(${pedido.id_pedido})">✏️ Editar</button>
+            <button class="btn-delete" onclick="excluirPedido(${pedido.id_pedido})">🗑️ Excluir</button>
+          </div>
+        `;
+
+        container.appendChild(div);
+      }
+    }
+
     fetch('/pedidos')
       .then(res => res.json())
-      .then(async pedidos => {
-        pedidos.sort((a, b) => a.comanda - b.comanda);
-        const container = document.getElementById('pedidosContainer');
-        if (pedidos.length === 0) {
-          container.textContent = 'Nenhum pedido encontrado.';
-          return;
-        }
-
-        container.innerHTML = '';
-
-        async function buscarPagamentos(idPedido) {
-          const res = await fetch(`/pagamentos/${idPedido}`);
-          if (!res.ok) return [];
-          return res.json();
-        }
-
-        for (const pedido of pedidos) {
-          const pagamentos = await buscarPagamentos(pedido.id_pedido);
-
-          const div = document.createElement('div');
-          div.classList.add('pedido');
-
-          const statusOptions = Object.entries(statusMap).map(([id, nome]) => {
-            const selected = parseInt(id) === pedido.id_status ? 'selected' : '';
-            return `<option value="${id}" ${selected}>${nome}</option>`;
-          }).join('');
-
-          const totalPedido = pedido.itens.reduce((acc, i) => acc + (i.valor * i.qtd_produto), 0);
-
-          div.innerHTML = `
-            <div class="pedido-header">
-              Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
-              Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
-              Status:
-              <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
-                ${statusOptions}
-              </select>
-              - Tipo: ${pedido.tipo_entrega}
-            </div>
-            <div>Observação: ${pedido.observacao || '-'}</div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Produto</th>
-                  <th>Quantidade</th>
-                  <th>Preço Unit.</th>
-                  <th>Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${pedido.itens.map(item => `
-                  <tr>
-                    <td>${item.nome_produto}</td>
-                    <td>${item.qtd_produto}</td>
-                    <td>R$ ${item.valor.toFixed(2)}</td>
-                    <td>R$ ${(item.valor * item.qtd_produto).toFixed(2)}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
-                  <td><strong>R$ ${totalPedido.toFixed(2)}</strong></td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <div class="pagamento-section">
-              <h3>Pagamentos</h3>
-              <div class="pagamento-list" id="pagamentosDoPedido-${pedido.id_pedido}">
-                ${pagamentos.length === 0
-                  ? '<p>Nenhum pagamento registrado.</p>'
-                  : pagamentos.map(p => `
-                    <div class="pagamento-item">
-                      <strong>Tipo:</strong> ${p.tipo_pagamento} | <strong>Valor:</strong> R$ ${parseFloat(p.valor_pago).toFixed(2)} | <strong>Status:</strong> ${p.status}
-                    </div>
-                  `).join('')}
-              </div>
-
-              <form onsubmit="registrarPagamento(event, ${pedido.id_pedido})">
-                <label>
-                  Tipo de pagamento:
-                  <select name="tipo_pagamento" required>
-                    <option value="">Selecione</option>
-                    <option value="Debito">Débito</option>
-                    <option value="Credito">Crédito</option>
-                    <option value="Dinheiro">Dinheiro</option>
-                    <option value="Pix">Pix</option>
-                  </select>
-                </label>
-                <label>
-                  Valor:
-                  <input type="number" step="0.01" name="valor_pago" required />
-                </label>
-                <button type="submit">Registrar pagamento</button>
-              </form>
-            </div>
-
-            <div class="actions">
-              <button class="btn-edit" onclick="editarPedido(${pedido.id_pedido})">✏️ Editar</button>
-              <button class="btn-delete" onclick="excluirPedido(${pedido.id_pedido})">🗑️ Excluir</button>
-            </div>
-          `;
-
-          container.appendChild(div);
-        }
+      .then(pedidos => {
+        arrayPedidos = pedidos.sort((a, b) => a.comanda - b.comanda);
+        renderizarPedidos(arrayPedidos);
       })
       .catch(err => {
         console.error('Erro ao carregar pedidos:', err);
         document.getElementById('pedidosContainer').textContent = 'Erro ao carregar pedidos.';
       });
+
+    document.getElementById('filtro-status').addEventListener('change', () => {
+      const filtro = document.getElementById('filtro-status').value;
+      const filtrados = filtro === ''
+        ? arrayPedidos
+        : arrayPedidos.filter(p => String(p.id_status) === filtro);
+      renderizarPedidos(filtrados);
+    });
   </script>
 </body>
 </html>

@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lista de Clientes - Assados de Domingo</title>
+  <!-- Adicionado Socket.IO CDN -->
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     * {
       margin: 0;
@@ -213,6 +215,7 @@
       <nav id="nav">
         <a href="index.html">Início</a>
         <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
       </nav>
@@ -247,13 +250,30 @@
   </div>
 
   <script>
+    const socket = io();
+
+    socket.on('cliente:criado', () => {
+      console.log('[v0] Cliente criado - atualizando lista');
+      carregarClientes();
+    });
+
+    socket.on('cliente:atualizado', () => {
+      console.log('[v0] Cliente atualizado - atualizando lista');
+      carregarClientes();
+    });
+
+    socket.on('cliente:excluido', () => {
+      console.log('[v0] Cliente excluído - atualizando lista');
+      carregarClientes();
+    });
+
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');
     }
 
     function criarNovoCliente() {
-      window.location.href = 'cadastro-cliente.html'; // Altere o link se a página de criação for diferente
+      window.location.href = 'cadastro-cliente.html';
     }
 
     function carregarClientes() {
@@ -302,7 +322,6 @@
       })
       .then(() => {
         alert('Cliente excluído com sucesso!');
-        carregarClientes();
       })
       .catch(err => {
         console.error(err);

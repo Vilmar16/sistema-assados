@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cadastro de Cliente - Assados de Domingo</title>
+  <script src="/socket.io/socket.io.js"></script>
   <style>
     * {
       margin: 0;
@@ -168,6 +169,7 @@
       <nav id="nav">
         <a href="index.html">Início</a>
         <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
         <a href="lista-produtos.html">Listar Produtos</a>
         <a href="lista-pedidos.html">Listar Pedidos</a>
       </nav>
@@ -187,6 +189,12 @@
   </div>
 
   <script>
+    const socket = io();
+
+    socket.on('connect', () => {
+      console.log('[v0] Socket.IO conectado');
+    });
+
     function toggleMenu() {
       const nav = document.getElementById('nav');
       nav.classList.toggle('active');

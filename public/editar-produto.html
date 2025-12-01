@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar Produto - Assados de Domingo</title>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo { font-size: 24px; font-weight: bold; color: #667eea; }
+
+    nav { display: flex; gap: 15px; }
+    nav a {
+      text-decoration: none;
+      color: #333;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+    nav a:hover { background: #f0f0f0; }
+
+    .hamburger { display: none; flex-direction: column; cursor: pointer; }
+    .hamburger span {
+      width: 25px; height: 3px; background: #333;
+      margin: 3px 0;
+    }
+
+    .content {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .content h1 {
+      color: #667eea;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    form input {
+      width: 100%;
+      padding: 12px 10px;
+      margin-top: 10px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    form input:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    button {
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:white;
+      padding: 15px;
+      font-size:16px;
+      border:none;
+      border-radius:5px;
+      cursor:pointer;
+      width:100%;
+      transition:background .3s, transform .3s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg,#764ba2 0%,#667eea 100%);
+      transform:translateY(-2px);
+    }
+
+    @media(max-width:768px){
+      .hamburger{display:flex;}
+      nav{display:none;flex-direction:column;width:100%;}
+      nav.active{display:flex;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🍗 Assados de Domingo</div>
+      
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </div>
+
+      <nav id="nav">
+        <a href="index.html">Início</a>
+        <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
+        <a href="lista-produtos.html">Listar Produtos</a>
+        <a href="lista-pedidos.html">Listar Pedidos</a>
+      </nav>
+    </header>
+
+    <div class="content">
+      <h1>Editar Produto</h1>
+
+      <form id="produtoForm">
+        <input type="text" id="nome" placeholder="Nome" required />
+        <input type="text" id="tamanho" placeholder="Tamanho" />
+        <input type="number" id="valor" step="0.01" placeholder="Valor" required />
+        <input type="number" id="quantidade_maxima" placeholder="Quantidade Máxima" />
+        <input type="text" id="categoria" placeholder="Categoria" />
+        <input type="text" id="unidade" placeholder="Unidade" />
+
+        <button type="submit">Salvar Alterações</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById("nav").classList.toggle("active");
+    }
+
+    // --- PEGAR ID DA URL ---
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+
+    if (!id) {
+      alert("ID do produto não informado!");
+      window.location.href = "lista-produtos.html";
+    }
+
+    // --- CARREGAR PRODUTO ---
+    function carregarProduto() {
+      fetch(`/produtos/${id}`)
+        .then(res => res.json())
+        .then(produto => {
+          document.getElementById("nome").value = produto.nome;
+          document.getElementById("tamanho").value = produto.tamanho || "";
+          document.getElementById("valor").value = produto.valor;
+          document.getElementById("quantidade_maxima").value = produto.quantidade_maxima || "";
+          document.getElementById("categoria").value = produto.categoria || "";
+          document.getElementById("unidade").value = produto.unidade || "";
+        })
+        .catch(err => {
+          console.error("Erro ao carregar produto:", err);
+          alert("Erro ao carregar dados do produto.");
+        });
+    }
+
+    carregarProduto();
+
+    // --- SALVAR ALTERAÇÕES ---
+    document.getElementById("produtoForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const produtoAtualizado = {
+        nome: document.getElementById("nome").value,
+        tamanho: document.getElementById("tamanho").value,
+        valor: parseFloat(document.getElementById("valor").value),
+        quantidade_maxima: parseInt(document.getElementById("quantidade_maxima").value) || null,
+        categoria: document.getElementById("categoria").value,
+        unidade: document.getElementById("unidade").value
+      };
+
+      fetch(`/produtos/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(produtoAtualizado)
+      })
+        .then(res => {
+          if (!res.ok) return res.json().then(err => Promise.reject(err));
+          return res.json();
+        })
+        .then(data => {
+          alert("Produto atualizado com sucesso!");
+          window.location.href = "lista-produtos.html";
+        })
+        .catch(err => {
+          console.error("Erro:", err);
+          alert(err.error || "Erro ao atualizar o produto");
+        });
+    });
+  </script>
+
+</body>
+</html>

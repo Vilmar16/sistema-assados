@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editar Combo - Assados de Domingo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: #333;
+      margin: 3px 0;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #f0f0f0;
+    }
+
+    .content {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .content h1 {
+      color: #667eea;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .content h2 {
+      color: #667eea;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    form label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 2px solid #e0e0e0;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .produto-item {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .produto-item span {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .produto-item input {
+      width: 80px;
+      margin: 0;
+    }
+
+    .produto-item button {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+
+    .produto-item button:hover {
+      background: #ff5252;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    button[type="submit"], button[type="button"] {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      flex: 1;
+      min-width: 150px;
+    }
+
+    button[type="submit"]:hover, button[type="button"]:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
+    #produtosContainer {
+      margin-top: 15px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin-top: 15px;
+      }
+
+      nav.active {
+        display: flex;
+      }
+
+      nav a {
+        width: 100%;
+        text-align: center;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .produto-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🍗 Assados de Domingo</div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav">
+        <a href="index.html">Início</a>
+        <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
+        <a href="lista-produtos.html">Listar Produtos</a>
+        <a href="lista-pedidos.html">Listar Pedidos</a>
+      </nav>
+    </header>
+
+    <div class="content">
+      <h1>Editar Combo</h1>
+
+      <form id="comboForm">
+        <label for="nome">Nome do Combo:</label>
+        <input type="text" id="nome" placeholder="Ex: Combo Frango" required />
+
+        <label for="valor">Valor do Combo:</label>
+        <input type="number" id="valor" step="0.01" placeholder="Ex: 99.90" required />
+
+        <h2>Produtos do Combo</h2>
+
+        <label for="produtoSelect">Adicionar Produto:</label>
+        <div style="display: flex; gap: 10px;">
+          <select id="produtoSelect" style="flex: 1;">
+            <option value="">Selecione um produto</option>
+          </select>
+          <input type="number" id="quantidade" min="1" value="1" style="width: 80px;" placeholder="Qtd">
+          <button type="button" onclick="adicionarProduto()" style="flex: 0 0 auto;">Adicionar</button>
+        </div>
+
+        <div id="produtosContainer"></div>
+
+        <div class="button-group">
+          <button type="submit">Salvar Alterações</button>
+          <button type="button" onclick="window.location.href='lista-combos.html'">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    function toggleMenu() {
+      const nav = document.getElementById('nav');
+      nav.classList.toggle('active');
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    let produtosAdicionados = [];
+
+    if (!id) {
+      alert('ID do combo não informado!');
+      window.location.href = 'lista-combos.html';
+    }
+
+    // Carregar produtos
+    fetch('/produtos')
+      .then(res => res.json())
+      .then(produtos => {
+        const select = document.getElementById('produtoSelect');
+        produtos.forEach(produto => {
+          const option = document.createElement('option');
+          option.value = produto.id;
+          option.textContent = `${produto.nome} - R$${parseFloat(produto.valor).toFixed(2)}`;
+          select.appendChild(option);
+        });
+      })
+      .catch(() => alert('Erro ao carregar produtos'));
+
+    // Carregar combo
+    fetch(`/combos/${id}`)
+      .then(res => res.json())
+      .then(combo => {
+        document.getElementById('nome').value = combo.nome;
+        document.getElementById('valor').value = combo.valor;
+        produtosAdicionados = combo.produtos.map(p => ({
+          id_produto: p.id_produto,
+          quantidade: p.quantidade,
+          nome: p.nome
+        }));
+        atualizarListaProdutos();
+      })
+      .catch(err => {
+        console.error('Erro ao carregar combo:', err);
+        alert('Erro ao carregar dados do combo');
+      });
+
+    function adicionarProduto() {
+      const select = document.getElementById('produtoSelect');
+      const quantidade = document.getElementById('quantidade');
+      const id_produto = select.value;
+
+      if (!id_produto) {
+        alert('Selecione um produto');
+        return;
+      }
+
+      const produto = produtosAdicionados.find(p => p.id_produto == id_produto);
+      if (produto) {
+        alert('Produto já adicionado ao combo');
+        return;
+      }
+
+      const option = select.options[select.selectedIndex];
+      const nomeProduto = option.text.split(' - ')[0];
+
+      produtosAdicionados.push({
+        id_produto: parseInt(id_produto),
+        quantidade: parseInt(quantidade.value),
+        nome: nomeProduto
+      });
+
+      atualizarListaProdutos();
+      select.value = '';
+      quantidade.value = '1';
+    }
+
+    function removerProduto(id_produto) {
+      produtosAdicionados = produtosAdicionados.filter(p => p.id_produto !== id_produto);
+      atualizarListaProdutos();
+    }
+
+    function atualizarListaProdutos() {
+      const container = document.getElementById('produtosContainer');
+      container.innerHTML = '';
+
+      produtosAdicionados.forEach(produto => {
+        const div = document.createElement('div');
+        div.className = 'produto-item';
+        div.innerHTML = `
+          <span>${produto.nome}</span>
+          <input type="number" value="${produto.quantidade}" min="1" onchange="atualizarQuantidade(${produto.id_produto}, this.value)">
+          <button type="button" onclick="removerProduto(${produto.id_produto})">Remover</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function atualizarQuantidade(id_produto, novaQtd) {
+      const produto = produtosAdicionados.find(p => p.id_produto === id_produto);
+      if (produto) {
+        produto.quantidade = parseInt(novaQtd);
+      }
+    }
+
+    document.getElementById('comboForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      if (produtosAdicionados.length === 0) {
+        alert('Adicione pelo menos um produto ao combo');
+        return;
+      }
+
+      const combo = {
+        nome: document.getElementById('nome').value,
+        valor: parseFloat(document.getElementById('valor').value),
+        produtos: produtosAdicionados
+      };
+
+      fetch(`/combos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(combo)
+      })
+        .then(res => {
+          if (!res.ok) return res.json().then(err => Promise.reject(err));
+          return res.json();
+        })
+        .then(data => {
+          alert(data.message || 'Combo atualizado com sucesso!');
+          window.location.href = 'lista-combos.html';
+        })
+        .catch(err => {
+          console.error('Erro:', err);
+          alert(err.error || 'Erro ao atualizar combo');
+        });
+    });
+  </script>
+</body>
+</html>

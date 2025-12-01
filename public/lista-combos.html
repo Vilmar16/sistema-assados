@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listar Combos - Assados de Domingo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: #333;
+      margin: 3px 0;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #f0f0f0;
+    }
+
+    .content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .content h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .button-top {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .button-top a {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 25px;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s, transform 0.3s;
+      display: inline-block;
+    }
+
+    .button-top a:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .combo-produtos {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .acoes a, .acoes button {
+      padding: 8px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+
+    .acoes .editar {
+      background: #667eea;
+      color: white;
+    }
+
+    .acoes .editar:hover {
+      background: #5568d3;
+    }
+
+    .acoes .deletar {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .acoes .deletar:hover {
+      background: #ff5252;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin-top: 15px;
+      }
+
+      nav.active {
+        display: flex;
+      }
+
+      nav a {
+        width: 100%;
+        text-align: center;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+
+      .acoes {
+        flex-direction: column;
+      }
+
+      .acoes a, .acoes button {
+        width: 100%;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🍗 Assados de Domingo</div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav">
+        <a href="index.html">Início</a>
+        <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
+        <a href="lista-produtos.html">Listar Produtos</a>
+        <a href="lista-pedidos.html">Listar Pedidos</a>
+      </nav>
+    </header>
+
+    <div class="content">
+      <h1>Listar Combos</h1>
+      
+      <div class="button-top">
+        <a href="cadastro-combo.html">+ Novo Combo</a>
+      </div>
+
+      <table id="combosTable">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Valor</th>
+            <th>Produtos</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="combosBody">
+          <tr>
+            <td colspan="4" class="empty-state">Carregando combos...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    function toggleMenu() {
+      const nav = document.getElementById('nav');
+      nav.classList.toggle('active');
+    }
+
+    function carregarCombos() {
+      fetch('/combos')
+        .then(res => res.json())
+        .then(combos => {
+          const tbody = document.getElementById('combosBody');
+          tbody.innerHTML = '';
+
+          if (combos.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum combo cadastrado</td></tr>';
+            return;
+          }
+
+          combos.forEach(combo => {
+            const produtosTexto = combo.produtos
+              .map(p => `${p.nome} (${p.quantidade}x)`)
+              .join(', ');
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${combo.nome}</td>
+              <td>R$${parseFloat(combo.valor).toFixed(2)}</td>
+              <td class="combo-produtos">${produtosTexto || 'Nenhum produto'}</td>
+              <td>
+                <div class="acoes">
+                  <a href="editar-combo.html?id=${combo.id}" class="editar">Editar</a>
+                  <button class="deletar" onclick="deletarCombo(${combo.id})">Deletar</button>
+                </div>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        })
+        .catch(err => {
+          console.error('Erro ao carregar combos:', err);
+          document.getElementById('combosBody').innerHTML = '<tr><td colspan="4" class="empty-state">Erro ao carregar combos</td></tr>';
+        });
+    }
+
+    function deletarCombo(id) {
+      if (!confirm('Tem certeza que deseja deletar este combo?')) return;
+
+      fetch(`/combos/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (!res.ok) return res.json().then(err => Promise.reject(err));
+          return res.json();
+        })
+        .then(data => {
+          alert(data.message || 'Combo deletado com sucesso!');
+          carregarCombos();
+        })
+        .catch(err => {
+          console.error('Erro:', err);
+          alert(err.error || 'Erro ao deletar combo');
+        });
+    }
+
+    // Socket.IO listeners para atualização em tempo real
+    socket.on('combo:criado', () => {
+      carregarCombos();
+    });
+
+    socket.on('combo:atualizado', () => {
+      carregarCombos();
+    });
+
+    socket.on('combo:excluido', () => {
+      carregarCombos();
+    });
+
+    carregarCombos();
+  </script>
+</body>
+</html>
