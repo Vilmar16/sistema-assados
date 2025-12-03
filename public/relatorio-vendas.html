@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relatório de Vendas - Assados de Domingo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 10px;
+    }
+
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: #333;
+      margin: 3px 0;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    nav a:hover {
+      background: #f0f0f0;
+    }
+
+    .content {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .content h1 {
+      color: #667eea;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters input, .filters select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    .filters button {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .filters button:hover {
+      background: #5568d3;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card h3 {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .value {
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section h2 {
+      color: #667eea;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+    }
+
+    .btn-export {
+      background: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-export:hover {
+      background: #45a049;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin-top: 15px;
+      }
+
+      nav.active {
+        display: flex;
+      }
+
+      nav a {
+        width: 100%;
+        text-align: center;
+      }
+
+      .filters {
+        flex-direction: column;
+      }
+
+      .filters input, .filters select, .filters button {
+        width: 100%;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🍗 Assados de Domingo</div>
+      <div class="hamburger" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <nav id="nav">
+        <a href="index.html">Início</a>
+        <a href="lista-clientes.html">Listar Clientes</a>
+        <a href="lista-combos.html">Listar Combos</a>
+        <a href="lista-produtos.html">Listar Produtos</a>
+        <a href="lista-pedidos.html">Listar Pedidos</a>
+      </nav>
+    </header>
+
+    <div class="content">
+      <h1>Relatório de Vendas</h1>
+
+      <div class="filters">
+        <label>De:</label>
+        <input type="date" id="dataInicio" />
+        <label>Até:</label>
+        <input type="date" id="dataFim" />
+        <button onclick="gerarRelatorio()">Gerar Relatório</button>
+        <button class="btn-export" onclick="exportarCSV()">Exportar CSV</button>
+      </div>
+
+      <div class="summary" id="resumoVendas">
+        <div class="summary-card">
+          <h3>Total de Vendas</h3>
+          <div class="value">R$ 0,00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Total de Pedidos</h3>
+          <div class="value">0</div>
+        </div>
+        <div class="summary-card">
+          <h3>Ticket Médio</h3>
+          <div class="value">R$ 0,00</div>
+        </div>
+        <div class="summary-card">
+          <h3>Produtos Vendidos</h3>
+          <div class="value">0</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Vendas por Cliente</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Quantidade de Pedidos</th>
+              <th>Total Gasto</th>
+              <th>Ticket Médio</th>
+            </tr>
+          </thead>
+          <tbody id="vendaClientesBody">
+            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>Vendas por Produto</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Quantidade Vendida</th>
+              <th>Valor Total</th>
+              <!-- <th>Preço Médio</th> -->
+            </tr>
+          </thead>
+          <tbody id="vendaProdutosBody">
+            <tr><td colspan="4" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>Vendas por Tipo</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Quantidade de Pedidos</th>
+              <th>Total de Vendas</th>
+            </tr>
+          </thead>
+          <tbody id="vendaTipoBody">
+            <tr><td colspan="3" class="empty-state">Carregando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    function toggleMenu() {
+      const nav = document.getElementById('nav');
+      nav.classList.toggle('active');
+    }
+
+    function definirDatasDefault() {
+      const hoje = new Date();
+      const trinta = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      document.getElementById('dataInicio').valueAsDate = trinta;
+      document.getElementById('dataFim').valueAsDate = hoje;
+    }
+
+    function gerarRelatorio() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      if (!dataInicio || !dataFim) {
+        alert('Selecione ambas as datas');
+        return;
+      }
+
+      fetch('/pedidos')
+        .then(res => res.json())
+        .then(pedidos => {
+          const inicio = new Date(dataInicio + 'T00:00:00').getTime();
+          const fim = new Date(dataFim + 'T23:59:59').getTime();
+
+          const pedidosFiltrados = pedidos.filter(p => {
+            const dataPedido = new Date(p.data_hora).getTime();
+            return dataPedido >= inicio && dataPedido <= fim;
+          });
+
+          processarRelatorio(pedidosFiltrados);
+        })
+        .catch(err => {
+          console.error('[v0] Erro ao buscar pedidos:', err);
+          alert('Erro ao buscar pedidos');
+        });
+    }
+
+    function processarRelatorio(pedidos) {
+      if (pedidos.length === 0) {
+        document.getElementById('vendaClientesBody').innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum pedido neste período.</td></tr>';
+        document.getElementById('vendaProdutosBody').innerHTML = '<tr><td colspan="4" class="empty-state">Nenhum pedido neste período.</td></tr>';
+        document.getElementById('vendaTipoBody').innerHTML = '<tr><td colspan="3" class="empty-state">Nenhum pedido neste período.</td></tr>';
+        return;
+      }
+
+      // Calcular totais
+      let totalVendas = 0;
+      let totalQuantidadeProdutos = 0;
+
+      // Dados por cliente
+      const vendaClientes = {};
+      
+      // Dados por produto
+      const vendaProdutos = {};
+      
+      // Dados por tipo de entrega
+      const vendaTipo = {};
+
+      // Processar cada pedido
+      pedidos.forEach(pedido => {
+        const nomeCliente = pedido.nome_cliente || 'Desconhecido';
+        
+        // Inicializar cliente se não existe
+        if (!vendaClientes[nomeCliente]) {
+          vendaClientes[nomeCliente] = { pedidos: 0, total: 0 };
+        }
+
+        // Inicializar tipo se não existe
+        if (!vendaTipo[pedido.tipo_entrega]) {
+          vendaTipo[pedido.tipo_entrega] = { pedidos: 0, total: 0 };
+        }
+
+        let totalPedido = 0;
+
+        // Processar itens do pedido
+        pedido.itens.forEach(item => {
+          const subtotal = item.subtotal || (item.valor * item.qtd_produto);
+          totalPedido += subtotal;
+
+          // Vendas por produto
+          if (!vendaProdutos[item.nome_produto]) {
+            vendaProdutos[item.nome_produto] = { qtd: 0, total: 0 };
+          }
+          let qtdAjustada = item.qtd_produto;
+
+const unidade = item.unidade ? item.unidade.toLowerCase() : "";
+
+// Se vier "kg" → e o valor for maior que 50, então é grama
+if (unidade === "kg") {
+  qtdAjustada = item.qtd_produto / 1000;
+}
+
+
+vendaProdutos[item.nome_produto].qtd += qtdAjustada;
+
+          vendaProdutos[item.nome_produto].total += subtotal;
+
+          // Contar apenas produtos (não combos) para total de produtos
+          if (item.tipo === 'produto') {
+            totalQuantidadeProdutos += qtdAjustada;
+          }
+        });
+
+        // Acumular dados do cliente
+        vendaClientes[nomeCliente].pedidos++;
+        vendaClientes[nomeCliente].total += totalPedido;
+
+        // Acumular dados do tipo
+        vendaTipo[pedido.tipo_entrega].pedidos++;
+        vendaTipo[pedido.tipo_entrega].total += totalPedido;
+
+        totalVendas += totalPedido;
+      });
+
+      // Renderizar tabela de clientes
+      const tabelaClientes = Object.entries(vendaClientes)
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([cliente, dados]) => `
+          <tr>
+            <td>${cliente}</td>
+            <td>${dados.pedidos}</td>
+            <td>R$ ${dados.total.toFixed(2)}</td>
+            <td>R$ ${(dados.total / dados.pedidos).toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+      document.getElementById('vendaClientesBody').innerHTML = tabelaClientes;
+
+      // Renderizar tabela de produtos
+      const tabelaProdutos = Object.entries(vendaProdutos)
+        .sort((a, b) => b[1].total - a[1].total)
+        .map(([produto, dados]) => `
+          <tr>
+            <td>${produto}</td>
+            <td>${dados.qtd}</td>
+            <td>R$ ${dados.total.toFixed(2)}</td>
+            <!-- <td>R$ ${(dados.total / dados.qtd).toFixed(2)}</td> -->
+          </tr>
+        `).join('');
+
+      document.getElementById('vendaProdutosBody').innerHTML = tabelaProdutos;
+
+      // Renderizar tabela de tipo de entrega
+      const tabelaTipo = Object.entries(vendaTipo)
+        .map(([tipo, dados]) => `
+          <tr>
+            <td>${tipo}</td>
+            <td>${dados.pedidos}</td>
+            <td>R$ ${dados.total.toFixed(2)}</td>
+          </tr>
+        `).join('');
+
+      document.getElementById('vendaTipoBody').innerHTML = tabelaTipo;
+
+      // Atualizar cards de resumo
+      const ticketMedio = pedidos.length > 0 ? totalVendas / pedidos.length : 0;
+      document.querySelectorAll('.summary-card .value')[0].textContent = `R$ ${totalVendas.toFixed(2)}`;
+      document.querySelectorAll('.summary-card .value')[1].textContent = pedidos.length;
+      document.querySelectorAll('.summary-card .value')[2].textContent = `R$ ${ticketMedio.toFixed(2)}`;
+      document.querySelectorAll('.summary-card .value')[3].textContent = totalQuantidadeProdutos;
+    }
+
+    function exportarCSV() {
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      if (!dataInicio || !dataFim) {
+        alert('Selecione ambas as datas');
+        return;
+      }
+
+      let csv = 'Relatório de Vendas\n';
+      csv += `Período: ${dataInicio} a ${dataFim}\n\n`;
+      
+      csv += 'VENDAS POR CLIENTE\n';
+      csv += 'Cliente,Pedidos,Total Gasto,Ticket Médio\n';
+      
+      document.querySelectorAll('#vendaClientesBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+          csv += `"${cells[0].textContent}","${cells[1].textContent}","${cells[2].textContent}","${cells[3].textContent}"\n`;
+        }
+      });
+
+      csv += '\n\nVENDAS POR PRODUTO\n';
+      csv += 'Produto,Quantidade,Valor Total,Preço Médio\n';
+      
+      document.querySelectorAll('#vendaProdutosBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length > 0) {
+          csv += `"${cells[0].textContent}","${cells[1].textContent}","${cells[2].textContent}","${cells[3].textContent}"\n`;
+        }
+      });
+
+      const link = document.createElement('a');
+      link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+      link.download = `relatorio-vendas-${dataInicio}-${dataFim}.csv`;
+      link.click();
+    }
+
+    definirDatasDefault();
+    gerarRelatorio();
+  </script>
+</body>
+</html>

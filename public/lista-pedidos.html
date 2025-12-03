@@ -88,23 +88,57 @@
             text-align: center;
         }
 
-        /* NOVO - CONTAINER DO FILTRO + BOTÃO */
         .actions-container {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            gap: 10px;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .filtro-select {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 6px;
+        /* Componente dropdown com menu suspenso e checkboxes */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            background: white;
             border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.2s;
         }
 
-        /* Pedido */
+        .dropdown-btn:hover {
+            background: #f3f3f3;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 45px;
+            left: 0;
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            min-width: 200px;
+            z-index: 10;
+        }
+
+        .dropdown-menu label {
+            display: block;
+            padding: 5px 0;
+            cursor: pointer;
+        }
+
+        .dropdown-menu input {
+            margin-right: 5px;
+        }
+
         .pedido {
             border: 2px solid #e0e0e0;
             padding: 20px;
@@ -195,7 +229,6 @@
             transform: translateY(-2px);
         }
 
-        /* Adicionando badge para combos */
         .combo-badge {
             display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -206,6 +239,59 @@
             font-weight: bold;
             margin-left: 5px;
         }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+
+            nav {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                margin-top: 15px;
+            }
+
+            nav.active {
+                display: flex;
+            }
+
+            nav a {
+                width: 100%;
+                text-align: center;
+            }
+
+            .actions-container {
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: flex-start; /* ou space-between */
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions button,
+            .actions a {
+                width: 100%;
+                text-align: center;
+            }
+
+
+        }
+
+        .button-top {
+            margin-left: auto;
+        }
+
     </style>
 </head>
 
@@ -232,20 +318,35 @@
         <div class="content">
             <h1>Lista de Pedidos</h1>
 
-            <!-- NOVO BLOCO: FILTRO + BOTÃO -->
             <div class="actions-container">
-                <select id="filtro-status" class="filtro-select">
-                    <option value="">Filtrar por Status</option>
-                    <option value="1">Aguardando Preparo</option>
-                    <option value="2">Em Preparo</option>
-                    <option value="3">Finalizado</option>
-                    <!-- <option value="4">Entregue</option> -->
-                    <option value="5">Cancelado</option>
-                </select>
 
-                <button class="btn-novo-pedido" onclick="criarNovoPedido()">
-                    ➕ Criar Novo Pedido
-                </button>
+                <!-- Filtro 1 - Status com dropdown menu -->
+                <div class="dropdown">
+                    <button class="dropdown-btn">Filtrar Status ▼</button>
+                    <div class="dropdown-menu">
+                        <label><input type="checkbox" value="1" class="status-check"> Aguardando Preparo</label>
+                        <label><input type="checkbox" value="2" class="status-check"> Em Preparo</label>
+                        <label><input type="checkbox" value="3" class="status-check"> Finalizado</label>
+                    </div>
+                </div>
+
+                <!-- Filtro 2 - Tipo com dropdown menu -->
+                <div class="dropdown">
+                    <button class="dropdown-btn">Filtrar Tipo ▼</button>
+                    <div class="dropdown-menu">
+                        <label>
+                            <input type="checkbox" value="Retirada" class="tipo-check"> Retirada
+                        </label>
+                        <label>
+                            <input type="checkbox" value="Entrega" class="tipo-check"> Entrega
+                        </label>
+                    </div>
+                </div>
+
+                <div class="button-top">
+                    <button class="btn-novo-pedido" onclick="criarNovoPedido()">➕ Novo Pedido</button>
+                </div>
+
             </div>
 
             <div id="pedidosContainer">Carregando pedidos...</div>
@@ -253,175 +354,200 @@
     </div>
 
 <script>
-    const socket = io();
+/* ==================== SOCKET.IO ==================== */
 
-    socket.on('pedido:criado', () => {
-        console.log('[v0] Novo pedido criado - recarregando lista');
-        location.reload();
+const socket = io();
+
+socket.on('pedido:criado', () => {
+    console.log('[v0] Novo pedido criado - recarregando lista');
+    location.reload();
+});
+
+socket.on('pedido:atualizado', () => {
+    console.log('[v0] Pedido atualizado - recarregando lista');
+    location.reload();
+});
+
+socket.on('pedido:status-atualizado', () => {
+    console.log('[v0] Status de pedido atualizado - recarregando lista');
+    location.reload();
+});
+
+socket.on('pedido:excluido', () => {
+    console.log('[v0] Pedido excluído - recarregando lista');
+    location.reload();
+});
+
+
+/* ==================== MENU MOBILE ==================== */
+
+function toggleMenu() {
+    const nav = document.getElementById('nav');
+    nav.classList.toggle('active');
+}
+
+
+/* ==================== DROPDOWNS ==================== */
+
+document.querySelectorAll('.dropdown-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const menu = this.nextElementSibling;
+
+    // Fecha outros
+    document.querySelectorAll('.dropdown-menu').forEach(m => {
+      if (m !== menu) m.style.display = 'none';
     });
 
-    socket.on('pedido:atualizado', () => {
-        console.log('[v0] Pedido atualizado - recarregando lista');
-        location.reload();
-    });
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  });
+});
 
-    socket.on('pedido:status-atualizado', () => {
-        console.log('[v0] Status de pedido atualizado - recarregando lista');
-        location.reload();
-    });
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+  }
+});
 
-    socket.on('pedido:excluido', () => {
-        console.log('[v0] Pedido excluído - recarregando lista');
-        location.reload();
-    });
 
-    function toggleMenu() {
-        const nav = document.getElementById('nav');
-        nav.classList.toggle('active');
+/* ==================== CARREGAR PEDIDOS ==================== */
+
+let arrayPedidos = [];
+const statusMap = { 1: 'Aguardando Preparo', 2: 'Em Preparo', 3: 'Finalizado'};
+
+function renderizarPedidos(lista) {
+    const container = document.getElementById('pedidosContainer');
+    container.innerHTML = "";
+
+    if (lista.length === 0) {
+        container.textContent = "Nenhum pedido encontrado.";
+        return;
     }
 
-    function criarNovoPedido() {
-        window.location.href = 'cadastro-pedido.html';
-    }
+    lista.forEach(pedido => {
+        const totalPedido = pedido.itens.reduce((acc, i) => acc + i.subtotal, 0);
 
-    const statusMap = {
-        1: 'Aguardando Preparo',
-        2: 'Em Preparo',
-        3: 'Finalizado',
-        4: 'Entregue',
-        5: 'Cancelado'
-    };
+        const div = document.createElement('div');
+        div.classList.add('pedido');
 
-    let arrayPedidos = [];
+        const statusOptions = Object.entries(statusMap)
+            .map(([id, nome]) =>
+                `<option value="${id}" ${parseInt(id) === pedido.id_status ? "selected" : ""}>${nome}</option>`
+            ).join('');
 
-    function renderizarPedidos(lista) {
-        const container = document.getElementById('pedidosContainer');
-        container.innerHTML = "";
+        const itensHTML = pedido.itens
+            .map(item => `
+                <tr>
+                    <td>${item.nome_produto}${item.tipo === "combo" ? '' : ''}</td>
+                    <td>${item.qtd_produto}</td>
+                    <td>R$ ${item.valor.toFixed(2)}</td>
+                    <td>R$ ${item.subtotal.toFixed(2)}</td>
+                </tr>`
+            ).join('');
 
-        if (lista.length === 0) {
-            container.textContent = "Nenhum pedido encontrado.";
-            return;
-        }
+        div.innerHTML = `
+            <div class="pedido-header">
+                Pedido #<strong>${pedido.comanda}</strong> - ${pedido.nome_cliente} <br />
+                Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
+                Status:
+                <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
+                    ${statusOptions}
+                </select>
+                - Tipo: ${pedido.tipo_entrega}
+            </div>
 
-        lista.forEach(pedido => {
-            const totalPedido = pedido.itens.reduce((acc, i) => acc + i.subtotal, 0);
+            <div>Observação: ${pedido.observacao || '-'}</div>
 
-            const div = document.createElement('div');
-            div.classList.add('pedido');
-
-            const statusOptions = Object.entries(statusMap).map(([id, nome]) => {
-                const selected = parseInt(id) === pedido.id_status ? 'selected' : '';
-                return `<option value="${id}" ${selected}>${nome}</option>`;
-            }).join('');
-
-            const itensHTML = pedido.itens.map(item => {
-                const isCombo = item.tipo === 'combo';
-                const badge = isCombo ? '' : '';
-                return `
+            <table>
+                <thead>
                     <tr>
-                        <td>${item.nome_produto}${badge}</td>
-                        <td>${item.qtd_produto}</td>
-                        <td>R$ ${item.valor.toFixed(2)}</td>
-                        <td>R$ ${item.subtotal.toFixed(2)}</td>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unit.</th>
+                        <th>Subtotal</th>
                     </tr>
-                `;
-            }).join('');
+                </thead>
+                <tbody>${itensHTML}</tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
+                        <td><strong>R$ ${totalPedido.toFixed(2)}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
 
-            div.innerHTML = `
-                <div class="pedido-header">
-                    Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
-                    Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
-                    Status:
-                    <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
-                        ${statusOptions}
-                    </select>
-                    - Tipo: ${pedido.tipo_entrega}
-                </div>
+            <div class="actions">
+                <button class="btn-edit" onclick="editarPedido(${pedido.id_pedido})">✏️ Editar</button>
+                <button class="btn-delete" onclick="excluirPedido(${pedido.id_pedido})">🗑️ Excluir</button>
+            </div>
+        `;
 
-                <div>Observação: ${pedido.observacao || '-'}</div>
+        container.appendChild(div);
+    });
+}
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Preço Unit.</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itensHTML}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
-                            <td><strong>R$ ${totalPedido.toFixed(2)}</strong></td>
-                        </tr>
-                    </tfoot>
-                </table>
-
-                <div class="actions">
-                    <button class="btn-edit" onclick="editarPedido(${pedido.id_pedido})">✏️ Editar</button>
-                    <button class="btn-delete" onclick="excluirPedido(${pedido.id_pedido})">🗑️ Excluir</button>
-                </div>
-            `;
-
-            container.appendChild(div);
-        });
-    }
-
-    fetch('/pedidos')
-        .then(res => res.json())
-        .then(pedidos => {
-            arrayPedidos = pedidos.sort((a, b) => a.comanda - b.comanda);
-            renderizarPedidos(arrayPedidos);
-        })
-        .catch(err => {
-            console.error("Erro ao carregar pedidos:", err);
-            document.getElementById("pedidosContainer").textContent = "Erro ao carregar pedidos.";
-        });
-
-    document.getElementById("filtro-status").addEventListener("change", () => {
-        const filtro = document.getElementById("filtro-status").value;
-
-        const filtrados = filtro === ""
-            ? arrayPedidos
-            : arrayPedidos.filter(p => String(p.id_status) === filtro);
-
-        renderizarPedidos(filtrados);
+fetch('/pedidos')
+    .then(res => res.json())
+    .then(pedidos => {
+        arrayPedidos = pedidos.sort((a, b) => a.comanda - b.comanda);
+        renderizarPedidos(arrayPedidos);
+    })
+    .catch(() => {
+        document.getElementById("pedidosContainer").textContent = "Erro ao carregar pedidos.";
     });
 
-    function atualizarStatusPedido(id_pedido, novoStatus) {
-        fetch(`/pedidos/${id_pedido}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ novoStatus: parseInt(novoStatus) })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Erro ao atualizar");
-            return res.json();
-        })
-        .then(() => {
-            // Não precisa recarregar aqui, o socket.io vai atualizar
-        })
-        .catch(err => console.error(err));
+
+/* ==================== FILTRAGEM USANDO CHECKBOXES ==================== */
+
+function aplicarFiltros() {
+    const statusSelecionados = [...document.querySelectorAll('.status-check:checked')]
+        .map(i => i.value);
+
+    const tiposSelecionados = [...document.querySelectorAll('.tipo-check:checked')]
+        .map(i => i.value);
+
+    let filtrados = arrayPedidos;
+
+    if (statusSelecionados.length > 0) {
+        filtrados = filtrados.filter(p => statusSelecionados.includes(String(p.id_status)));
     }
 
-    function editarPedido(id_pedido) {
-        window.location.href = `editar-pedido.html?id=${id_pedido}`;
+    if (tiposSelecionados.length > 0) {
+        filtrados = filtrados.filter(p => tiposSelecionados.includes(p.tipo_entrega));
     }
 
-    function excluirPedido(id_pedido) {
-        if (!confirm(`Excluir pedido #${id_pedido}?`)) return;
+    renderizarPedidos(filtrados);
+}
 
-        fetch(`/pedidos/${id_pedido}`, { method: "DELETE" })
-            .then(res => res.json())
-            .then(() => {
-                // Não precisa recarregar aqui, o socket.io vai atualizar
-            })
-            .catch(err => console.error(err));
-    }
+document.querySelectorAll('.status-check, .tipo-check')
+    .forEach(cb => cb.addEventListener('change', aplicarFiltros));
+
+
+/* ==================== FUNÇÕES DE AÇÕES ==================== */
+
+function criarNovoPedido() {
+    window.location.href = 'cadastro-pedido.html';
+}
+
+function atualizarStatusPedido(id_pedido, novoStatus) {
+    fetch(`/pedidos/${id_pedido}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ novoStatus: parseInt(novoStatus) })
+    }).catch(console.error);
+}
+
+function editarPedido(id_pedido) {
+    window.location.href = `editar-pedido.html?id=${id_pedido}`;
+}
+
+function excluirPedido(id_pedido) {
+    if (!confirm(`Excluir pedido #${id_pedido}?`)) return;
+
+    fetch(`/pedidos/${id_pedido}`, { method: "DELETE" })
+        .catch(console.error);
+}
 </script>
 
 </body>
 </html>
+

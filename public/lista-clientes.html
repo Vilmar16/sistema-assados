@@ -2,10 +2,8 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista de Clientes - Assados de Domingo</title>
-  <!-- Adicionado Socket.IO CDN -->
-  <script src="/socket.io/socket.io.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listar Clientes - Assados de Domingo</title>
   <style>
     * {
       margin: 0;
@@ -35,6 +33,7 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
+      gap: 15px;
     }
 
     .logo {
@@ -55,7 +54,6 @@
       height: 3px;
       background: #333;
       margin: 3px 0;
-      transition: 0.3s;
     }
 
     nav {
@@ -78,15 +76,39 @@
 
     .content {
       background: white;
-      padding: 40px;
+      padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .content h1 {
       color: #667eea;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       text-align: center;
+    }
+
+    .button-top {
+      text-align: right;
+      margin-bottom: 20px;
+    }
+
+    .button-top a, .btn-novo-cliente {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 12px 25px;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background 0.3s, transform 0.3s;
+      display: inline-block;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+    }
+
+    .button-top a:hover,
+    .btn-novo-cliente:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
     }
 
     table {
@@ -95,55 +117,56 @@
       margin-top: 20px;
     }
 
-    th, td {
-      border: 1px solid #e0e0e0;
-      padding: 12px;
-      text-align: left;
-    }
-
     th {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #667eea;
       color: white;
+      padding: 15px;
+      text-align: left;
       font-weight: bold;
     }
 
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
     }
 
     tr:hover {
-      background-color: #f0f0f0;
+      background: #f9f9f9;
     }
 
-    .actions button, .actions a {
-      margin-right: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .actions a,
+    .actions button {
+      padding: 8px 12px;
+      border-radius: 5px;
       text-decoration: none;
       border: none;
-      border-radius: 5px;
-      transition: background 0.3s, transform 0.2s;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
     }
 
     .btn-edit {
-      background-color: #4CAF50;
+      background: #667eea;
       color: white;
     }
 
     .btn-edit:hover {
-      background-color: #45a049;
-      transform: translateY(-2px);
+      background: #5568d3;
     }
 
     .btn-delete {
-      background-color: #f44336;
+      background: #ff6b6b;
       color: white;
     }
 
     .btn-delete:hover {
-      background-color: #da190b;
-      transform: translateY(-2px);
+      background: #ff5252;
     }
 
     @media (max-width: 768px) {
@@ -167,42 +190,27 @@
         text-align: center;
       }
 
-      .content {
-        padding: 20px;
-        overflow-x: auto;
-      }
-
       table {
-        font-size: 14px;
+        font-size: 12px;
       }
 
       th, td {
         padding: 8px;
       }
-    }
-    .novo-cliente-container {
-      text-align: right;
-      margin-bottom: 20px;
-    }
 
-    .btn-novo-cliente {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 10px 20px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
-    }
+      .actions {
+        flex-direction: column;
+      }
 
-    .btn-novo-cliente:hover {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-      transform: translateY(-2px);
+      .actions a,
+      .actions button {
+        width: 100%;
+        text-align: center;
+      }
     }
-
   </style>
 </head>
+
 <body>
   <div class="container">
     <header>
@@ -222,19 +230,33 @@
     </header>
 
     <div class="content">
-      
-      <h1>Lista de Clientes</h1>
+      <h1>Listar Clientes</h1>
 
-      <div class="novo-cliente-container">
-        <button class="btn-novo-cliente" onclick="criarNovoCliente()">
-          ➕ Criar Novo Cliente
+      <!-- Added search filter input field -->
+      <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <input 
+          type="text" 
+          id="buscaInput" 
+          placeholder="Buscar por nome ou telefone..." 
+          style="flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px;"
+        />
+        <button onclick="buscarClientes()" style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Buscar
         </button>
+        <button onclick="limparBusca()" style="padding: 10px 20px; background: #999; color: white; border: none; border-radius: 5px; cursor: pointer;">
+          Limpar
+        </button>
+
+        <!-- Botão Novo Cliente AQUI -->
+        <button class="btn-novo-cliente" onclick="criarNovoCliente()">
+          + Novo Cliente
+        </button>
+        
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nome</th>
             <th>Telefone</th>
             <th>Endereço</th>
@@ -243,29 +265,20 @@
           </tr>
         </thead>
         <tbody id="clientesBody">
-          <tr><td colspan="6" style="text-align: center;">Carregando...</td></tr>
+          <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
+
   <script>
     const socket = io();
 
-    socket.on('cliente:criado', () => {
-      console.log('[v0] Cliente criado - atualizando lista');
-      carregarClientes();
-    });
-
-    socket.on('cliente:atualizado', () => {
-      console.log('[v0] Cliente atualizado - atualizando lista');
-      carregarClientes();
-    });
-
-    socket.on('cliente:excluido', () => {
-      console.log('[v0] Cliente excluído - atualizando lista');
-      carregarClientes();
-    });
+    socket.on('cliente:criado', carregarClientes);
+    socket.on('cliente:atualizado', carregarClientes);
+    socket.on('cliente:excluido', carregarClientes);
 
     function toggleMenu() {
       const nav = document.getElementById('nav');
@@ -276,57 +289,76 @@
       window.location.href = 'cadastro-cliente.html';
     }
 
+    function buscarClientes() {
+      const termo = document.getElementById('buscaInput').value;
+      
+      if (!termo.trim()) {
+        carregarClientes();
+        return;
+      }
+
+      fetch(`/clientes?busca=${encodeURIComponent(termo)}`)
+        .then(res => res.json())
+        .then(clientes => renderizarClientesTabela(clientes))
+        .catch(() => {
+          document.getElementById('clientesBody').innerHTML =
+            '<tr><td colspan="5" class="empty-state">Erro ao buscar clientes.</td></tr>';
+        });
+    }
+
+    function limparBusca() {
+      document.getElementById('buscaInput').value = '';
+      carregarClientes();
+    }
+
+    function renderizarClientesTabela(clientes) {
+      const tbody = document.getElementById('clientesBody');
+      tbody.innerHTML = '';
+
+      if (clientes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum cliente encontrado.</td></tr>';
+        return;
+      }
+
+      clientes.forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${c.nome}</td>
+          <td>${c.telefone}</td>
+          <td>${c.endereco || '-'}</td>
+          <td>${c.observacao || '-'}</td>
+          <td class="actions">
+            <a href="editar-cliente.html?id=${c.id}" class="btn-edit">Editar</a>
+            <button class="btn-delete" onclick="deletarCliente(${c.id})">Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
     function carregarClientes() {
       fetch('/clientes')
         .then(res => res.json())
-        .then(clientes => {
-          const tbody = document.getElementById('clientesBody');
-          tbody.innerHTML = '';
-
-          if (clientes.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum cliente encontrado.</td></tr>';
-            return;
-          }
-
-          clientes.forEach(c => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${c.id}</td>
-              <td>${c.nome}</td>
-              <td>${c.telefone}</td>
-              <td>${c.endereco || '-'}</td>
-              <td>${c.observacao || '-'}</td>
-              <td class="actions">
-                <a href="editar-cliente.html?id=${c.id}" class="btn-edit">Editar</a>
-                <button class="btn-delete" onclick="deletarCliente(${c.id})">Excluir</button>
-              </td>
-            `;
-            tbody.appendChild(row);
-          });
-        })
-        .catch(err => {
-          console.error('Erro ao carregar clientes:', err);
-          document.getElementById('clientesBody').innerHTML = '<tr><td colspan="6" style="text-align: center;">Erro ao carregar dados.</td></tr>';
+        .then(clientes => renderizarClientesTabela(clientes))
+        .catch(() => {
+          document.getElementById('clientesBody').innerHTML =
+            '<tr><td colspan="5" class="empty-state">Erro ao carregar dados.</td></tr>';
         });
     }
 
     function deletarCliente(id) {
       if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
 
-      fetch(`/clientes/${id}`, {
-        method: 'DELETE'
-      })
-      .then(res => {
-        if (!res.ok) throw new Error('Erro ao excluir cliente');
-        return res.json();
-      })
-      .then(() => {
-        alert('Cliente excluído com sucesso!');
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Erro ao excluir cliente');
-      });
+      fetch(`/clientes/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (!res.ok) throw new Error();
+          return res.json();
+        })
+        .then(() => {
+          alert('Cliente excluído com sucesso!');
+          carregarClientes();
+        })
+        .catch(() => alert('Erro ao excluir cliente'));
     }
 
     carregarClientes();

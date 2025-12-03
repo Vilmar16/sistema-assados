@@ -149,6 +149,29 @@
     .produto-controls button:hover {
       color: #b52b27;
     }
+    /* <CHANGE> add combo styling */
+    .combo-item {
+      border: 2px solid #764ba2;
+      padding: 15px 20px;
+      margin: 10px 0;
+      background: #f5f1fa;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .combo-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-left: 5px;
+    }
     #loading {
       text-align: center;
       padding: 50px;
@@ -217,7 +240,7 @@
       .btn-group {
         justify-content: center;
       }
-      .produto-item {
+      .produto-item, .combo-item {
         flex-direction: column;
         align-items: flex-start;
       }
@@ -255,9 +278,9 @@
           <label for="cliente">Cliente:</label>
           <select id="cliente" required></select>
 
-          <label for="tipo_entrega">Tipo de Entrega:</label>
+          <label for="tipo_entrega">Tipo:</label>
           <select id="tipo_entrega" required>
-            <option value="Local">Local</option>
+            <option value="Retirada">Retirada</option>
             <option value="Entrega">Entrega</option>
           </select>
 
@@ -272,6 +295,13 @@
 
           <h3>Adicionar Produtos</h3>
           <div id="produtosDisponiveisContainer"></div>
+
+          <!-- <CHANGE> add combos section -->
+          <h2>Combos do Pedido</h2>
+          <div id="combosAtuaisContainer"></div>
+
+          <h3>Adicionar Combos</h3>
+          <div id="combosDisponiveisContainer"></div>
 
           <div class="btn-group">
             <button type="submit" class="btn-primary">Salvar Alterações</button>
@@ -299,34 +329,48 @@
     let pedidoAtual = null;
     let todosClientes = [];
     let todosProdutos = [];
+    let todosCombos = [];
     let todosStatus = [];
     let produtosSelecionados = [];
+    let combosSelecionados = [];
 
     const statusMap = {
       1: 'Aguardando Preparo',
       2: 'Em Preparo',
       3: 'Finalizado',
-      4: 'Entregue',
-      5: 'Cancelado'
     };
 
     Promise.all([
       fetch(`/pedidos/${idPedido}`).then(res => res.json()),
       fetch('/clientes').then(res => res.json()),
-      fetch('/produtos').then(res => res.json())
+      fetch('/produtos').then(res => res.json()),
+      fetch('/combos').then(res => res.json())
     ])
-      .then(([pedido, clientes, produtos]) => {
+      .then(([pedido, clientes, produtos, combos]) => {
         pedidoAtual = pedido;
         todosClientes = clientes;
         todosProdutos = produtos;
+        todosCombos = combos;
         todosStatus = Object.entries(statusMap).map(([id, nome]) => ({ id: parseInt(id), nome }));
 
-        produtosSelecionados = pedido.itens.map(item => ({
-          id_produto: item.id_produto,
-          nome_produto: item.nome_produto,
-          qtd_produto: item.qtd_produto,
-          valor: item.valor
-        }));
+        // <CHANGE> separate products and combos from itens array
+        produtosSelecionados = pedido.itens
+          .filter(item => item.tipo === 'produto')
+          .map(item => ({
+            id_produto: item.id_produto,
+            nome_produto: item.nome_produto,
+            qtd_produto: item.qtd_produto,
+            valor: item.valor
+          }));
+
+        combosSelecionados = pedido.itens
+          .filter(item => item.tipo === 'combo')
+          .map(item => ({
+            id_combo: item.id_combo,
+            nome_combo: item.nome_produto,
+            qtd_combo: item.qtd_produto,
+            valor: item.valor
+          }));
 
         renderizarFormulario();
         document.getElementById('loading').style.display = 'none';
@@ -371,6 +415,8 @@
 
       renderizarProdutosAtuais();
       renderizarProdutosDisponiveis();
+      renderizarCombosAtuais();
+      renderizarCombosDisponiveis();
     }
 
     function renderizarProdutosAtuais() {
@@ -391,7 +437,7 @@
           </div>
           <div class="produto-controls">
             <label for="qtd-prod-${index}">Quantidade:</label>
-            <input type="number" id="qtd-prod-${index}" min="1" value="${produto.qtd_produto}" onchange="atualizarQuantidade(${index}, this.value)" />
+            <input type="number" id="qtd-prod-${index}" min="1" value="${produto.qtd_produto}" onchange="atualizarQuantidadeProduto(${index}, this.value)" />
             <button type="button" title="Remover produto" onclick="removerProduto(${index})">&times;</button>
           </div>
         `;
@@ -447,7 +493,64 @@
       });
     }
 
-    function atualizarQuantidade(index, novaQtd) {
+    // <CHANGE> add combo rendering functions
+    function renderizarCombosAtuais() {
+      const container = document.getElementById('combosAtuaisContainer');
+      container.innerHTML = '';
+
+      if (combosSelecionados.length === 0) {
+        container.innerHTML = '<p>Nenhum combo no pedido.</p>';
+        return;
+      }
+
+      combosSelecionados.forEach((combo, index) => {
+        const div = document.createElement('div');
+        div.classList.add('combo-item');
+        div.innerHTML = `
+          <div class="produto-info">
+            <strong>${combo.nome_combo}</strong> - R$ ${combo.valor.toFixed(2)}
+          </div>
+          <div class="produto-controls">
+            <label for="qtd-combo-${index}">Quantidade:</label>
+            <input type="number" id="qtd-combo-${index}" min="1" value="${combo.qtd_combo}" onchange="atualizarQuantidadeCombo(${index}, this.value)" />
+            <button type="button" title="Remover combo" onclick="removerCombo(${index})">&times;</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderizarCombosDisponiveis() {
+      const container = document.getElementById('combosDisponiveisContainer');
+      container.innerHTML = '';
+
+      const combosNaoSelecionados = todosCombos.filter(c =>
+        !combosSelecionados.some(cs => cs.id_combo === c.id)
+      );
+
+      if (combosNaoSelecionados.length === 0) {
+        container.innerHTML = '<p>Todos os combos já foram adicionados.</p>';
+        return;
+      }
+
+      combosNaoSelecionados.forEach(combo => {
+        const div = document.createElement('div');
+        div.classList.add('combo-item');
+        div.innerHTML = `
+          <div class="produto-info">
+            <strong>${combo.nome}</strong> - R$ ${parseFloat(combo.valor).toFixed(2)}
+          </div>
+          <div class="produto-controls">
+            <label>Quantidade:</label>
+            <input type="number" id="qtd-combo-new-${combo.id}" min="1" value="1" style="width: 80px;" />
+            <button type="button" title="Adicionar combo" onclick="adicionarCombo(${combo.id})">+</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function atualizarQuantidadeProduto(index, novaQtd) {
       const qtd = parseInt(novaQtd);
       if (!isNaN(qtd) && qtd > 0) {
         produtosSelecionados[index].qtd_produto = qtd;
@@ -485,11 +588,41 @@
       renderizarProdutosDisponiveis();
     }
 
+    // <CHANGE> add combo management functions
+    function atualizarQuantidadeCombo(index, novaQtd) {
+      const qtd = parseInt(novaQtd);
+      if (!isNaN(qtd) && qtd > 0) {
+        combosSelecionados[index].qtd_combo = qtd;
+      }
+    }
+
+    function removerCombo(index) {
+      combosSelecionados.splice(index, 1);
+      renderizarCombosAtuais();
+      renderizarCombosDisponiveis();
+    }
+
+    function adicionarCombo(idCombo) {
+      const combo = todosCombos.find(c => c.id === idCombo);
+      const qtdInput = document.getElementById(`qtd-combo-new-${idCombo}`);
+      const qtd = parseInt(qtdInput.value) || 1;
+
+      combosSelecionados.push({
+        id_combo: combo.id,
+        nome_combo: combo.nome,
+        qtd_combo: qtd,
+        valor: parseFloat(combo.valor)
+      });
+
+      renderizarCombosAtuais();
+      renderizarCombosDisponiveis();
+    }
+
     document.getElementById('editarPedidoForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
-      if (produtosSelecionados.length === 0) {
-        alert('O pedido deve ter pelo menos um produto.');
+      if (produtosSelecionados.length === 0 && combosSelecionados.length === 0) {
+        alert('O pedido deve ter pelo menos um produto ou combo.');
         return;
       }
 
@@ -501,6 +634,10 @@
         produtos: produtosSelecionados.map(p => ({
           id_produto: p.id_produto,
           qtd_produto: p.qtd_produto
+        })),
+        combos: combosSelecionados.map(c => ({
+          id_combo: c.id_combo,
+          qtd_combo: c.qtd_combo
         }))
       };
 

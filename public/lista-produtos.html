@@ -2,12 +2,14 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lista de Produtos - Assados de Domingo</title>
-  <!-- Adicionado Socket.IO CDN -->
-  <script src="/socket.io/socket.io.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Listar Produtos - Assados de Domingo</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: Arial, sans-serif;
@@ -16,18 +18,22 @@
       padding: 20px;
     }
 
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
     header {
       background: white;
       padding: 20px;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       margin-bottom: 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
+      gap: 15px;
     }
 
     .logo {
@@ -36,10 +42,26 @@
       color: #667eea;
     }
 
-    .hamburger { display: none; flex-direction: column; cursor: pointer; padding: 10px; }
-    .hamburger span { width: 25px; height: 3px; background: #333; margin: 3px 0; transition: 0.3s; }
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 10px;
+    }
 
-    nav { display: flex; gap: 15px; flex-wrap: wrap; }
+    .hamburger span {
+      width: 25px;
+      height: 3px;
+      background: #333;
+      margin: 3px 0;
+    }
+
+    nav {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
     nav a {
       text-decoration: none;
       color: #333;
@@ -47,63 +69,144 @@
       border-radius: 5px;
       transition: background 0.3s;
     }
-    nav a:hover { background: #f0f0f0; }
+
+    nav a:hover {
+      background: #f0f0f0;
+    }
 
     .content {
       background: white;
-      padding: 40px;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .content h1 { color: #667eea; margin-bottom: 30px; text-align: center; }
-
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
-    th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-weight: bold; }
-    tr:nth-child(even) { background-color: #f9f9f9; }
-    tr:hover { background-color: #f0f0f0; }
-
-    .actions button, .actions a {
-      margin-right: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      text-decoration: none;
-      border: none;
-      border-radius: 5px;
-      transition: background 0.3s, transform 0.2s;
+    .content h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
-    .btn-edit { background-color: #4CAF50; color: white; }
-    .btn-edit:hover { background-color: #45a049; transform: translateY(-2px); }
-    .btn-delete { background-color: #f44336; color: white; }
-    .btn-delete:hover { background-color: #da190b; transform: translateY(-2px); }
-
-    @media (max-width: 768px) {
-      .hamburger { display: flex; }
-      nav { display: none; width: 100%; flex-direction: column; margin-top: 15px; }
-      nav.active { display: flex; }
-      nav a { width: 100%; text-align: center; }
-      .content { padding: 20px; overflow-x: auto; }
-      table { font-size: 14px; }
-      th, td { padding: 8px; }
+    .button-top {
+      text-align: right;
+      margin-bottom: 20px;
     }
 
-    .novo-produto-container { text-align: right; margin-bottom: 20px; }
-    .btn-novo-produto {
+    .button-top a {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 10px 20px;
-      font-size: 14px;
-      border: none;
+      padding: 12px 25px;
+      text-decoration: none;
       border-radius: 5px;
-      cursor: pointer;
       transition: background 0.3s, transform 0.3s;
+      display: inline-block;
     }
-    .btn-novo-produto:hover {
+
+    .button-top a:hover {
       background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
       transform: translateY(-2px);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: bold;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tr:hover {
+      background: #f9f9f9;
+    }
+
+    .acoes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .acoes a, .acoes button {
+      padding: 8px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 0.3s;
+    }
+
+    .acoes .editar {
+      background: #667eea;
+      color: white;
+    }
+
+    .acoes .editar:hover {
+      background: #5568d3;
+    }
+
+    .acoes .deletar {
+      background: #ff6b6b;
+      color: white;
+    }
+
+    .acoes .deletar:hover {
+      background: #ff5252;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
+        display: flex;
+      }
+
+      nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        margin-top: 15px;
+      }
+
+      nav.active {
+        display: flex;
+      }
+
+      nav a {
+        width: 100%;
+        text-align: center;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+
+      .acoes {
+        flex-direction: column;
+      }
+
+      .acoes a, .acoes button {
+        width: 100%;
+        text-align: center;
+      }
     }
   </style>
 </head>
@@ -126,55 +229,39 @@
     </header>
 
     <div class="content">
-      <h1>Lista de Produtos</h1>
-
-      <div class="novo-produto-container">
-        <button class="btn-novo-produto" onclick="criarNovoProduto()">➕ Criar Novo Produto</button>
+      <h1>Listar Produtos</h1>
+      
+      <div class="button-top">
+        <a href="cadastro-produto.html">+ Novo Produto</a>
       </div>
 
-      <table>
+      <table id="produtosTable">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Nome</th>
             <th>Tamanho</th>
             <th>Categoria</th>
-            <th>Valor (R$)</th>
+            <th>Valor</th>
             <th>Quantidade</th>
             <th>Ações</th>
           </tr>
         </thead>
         <tbody id="produtosBody">
-          <tr><td colspan="7" style="text-align: center;">Carregando...</td></tr>
+          <tr>
+            <td colspan="7" class="empty-state">Carregando produtos...</td>
+          </tr>
         </tbody>
       </table>
     </div>
   </div>
 
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
 
-    socket.on('produto:criado', () => {
-      console.log('[v0] Produto criado - atualizando lista');
-      carregarProdutos();
-    });
-
-    socket.on('produto:atualizado', () => {
-      console.log('[v0] Produto atualizado - atualizando lista');
-      carregarProdutos();
-    });
-
-    socket.on('produto:excluido', () => {
-      console.log('[v0] Produto excluído - atualizando lista');
-      carregarProdutos();
-    });
-
     function toggleMenu() {
-      document.getElementById('nav').classList.toggle('active');
-    }
-
-    function criarNovoProduto() {
-      window.location.href = 'cadastro-produto.html';
+      const nav = document.getElementById('nav');
+      nav.classList.toggle('active');
     }
 
     function carregarProdutos() {
@@ -185,49 +272,64 @@
           tbody.innerHTML = '';
 
           if (produtos.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nenhum produto encontrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Nenhum produto encontrado</td></tr>';
             return;
           }
 
           produtos.forEach(p => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${p.id}</td>
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
               <td>${p.nome}</td>
               <td>${p.tamanho || '-'}</td>
               <td>${p.categoria || '-'}</td>
-              <td>${parseFloat(p.valor).toFixed(2)}</td>
+              <td>R$${parseFloat(p.valor).toFixed(2)}</td>
               <td>${p.quantidade_maxima || '-'}</td>
-              <td class="actions">
-                <a href="editar-produto.html?id=${p.id}" class="btn-edit">Editar</a>
-                <button class="btn-delete" onclick="deletarProduto(${p.id})">Excluir</button>
+              <td>
+                <div class="acoes">
+                  <a href="editar-produto.html?id=${p.id}" class="editar">Editar</a>
+                  <button class="deletar" onclick="deletarProduto(${p.id})">Deletar</button>
+                </div>
               </td>
             `;
-            tbody.appendChild(row);
+            tbody.appendChild(tr);
           });
         })
         .catch(err => {
           console.error('Erro ao carregar produtos:', err);
-          document.getElementById('produtosBody').innerHTML = '<tr><td colspan="7" style="text-align: center;">Erro ao carregar produtos.</td></tr>';
+          document.getElementById('produtosBody').innerHTML = '<tr><td colspan="7" class="empty-state">Erro ao carregar produtos</td></tr>';
         });
     }
 
     function deletarProduto(id) {
-      if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+      if (!confirm('Tem certeza que deseja deletar este produto?')) return;
 
       fetch(`/produtos/${id}`, { method: 'DELETE' })
         .then(res => {
-          if (!res.ok) throw new Error('Erro ao excluir produto');
+          if (!res.ok) return res.json().then(err => Promise.reject(err));
           return res.json();
         })
-        .then(() => {
-          alert('Produto excluído com sucesso!');
+        .then(data => {
+          alert(data.message || 'Produto deletado com sucesso!');
+          carregarProdutos();
         })
         .catch(err => {
-          console.error(err);
-          alert('Erro ao excluir produto');
+          console.error('Erro:', err);
+          alert(err.error || 'Erro ao deletar produto');
         });
     }
+
+    // Socket.IO listeners para atualização em tempo real
+    socket.on('produto:criado', () => {
+      carregarProdutos();
+    });
+
+    socket.on('produto:atualizado', () => {
+      carregarProdutos();
+    });
+
+    socket.on('produto:excluido', () => {
+      carregarProdutos();
+    });
 
     carregarProdutos();
   </script>

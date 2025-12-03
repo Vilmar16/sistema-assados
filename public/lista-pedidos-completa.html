@@ -88,6 +88,57 @@
       text-align: center;
     }
 
+    .actions-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    /* Componente dropdown com menu suspenso e checkboxes */
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-btn {
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    .dropdown-btn:hover {
+      background: #f3f3f3;
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 45px;
+      left: 0;
+      background: white;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      min-width: 200px;
+      z-index: 10;
+    }
+
+    .dropdown-menu label {
+      display: block;
+      padding: 5px 0;
+      cursor: pointer;
+    }
+
+    .dropdown-menu input {
+      margin-right: 5px;
+    }
+
     .pedido {
       border: 2px solid #e0e0e0;
       padding: 20px;
@@ -113,7 +164,6 @@
       color: #667eea;
     }
 
-    /* Added status badge styling */
     .status-badge {
       display: inline-block;
       padding: 5px 10px;
@@ -123,13 +173,12 @@
       font-size: 14px;
     }
 
-    .status-1 { background-color: #fff3cd; color: #856404; } /* Aguardando */
-    .status-2 { background-color: #cfe2ff; color: #084298; } /* Em Preparo */
-    .status-3 { background-color: #d1e7dd; color: #0f5132; } /* Finalizado */
-    .status-4 { background-color: #e2e3e5; color: #383d41; } /* Entregue */
-    .status-5 { background-color: #f8d7da; color: #842029; } /* Cancelado */
+    .status-1 { background-color: #fff3cd; color: #856404; }
+    .status-2 { background-color: #cfe2ff; color: #084298; }
+    .status-3 { background-color: #d1e7dd; color: #0f5132; }
+    .status-4 { background-color: #e2e3e5; color: #383d41; }
+    .status-5 { background-color: #f8d7da; color: #842029; }
 
-    /* Badge para diferenciar combos visualmente */
     .combo-badge {
       display: inline-block;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -163,21 +212,6 @@
     tfoot td {
       font-weight: bold;
       background: #f0f0f0;
-    }
-
-    select {
-      padding: 8px 12px;
-      margin-left: 10px;
-      border: 2px solid #e0e0e0;
-      border-radius: 5px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: border-color 0.3s;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: #667eea;
     }
 
     .pagamento-section {
@@ -287,6 +321,22 @@
       transform: translateY(-2px);
     }
 
+    .btn-novo-pedido {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .btn-novo-pedido:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-2px);
+    }
+
     @media (max-width: 768px) {
       .hamburger {
         display: flex;
@@ -316,6 +366,12 @@
         padding: 15px;
       }
 
+      .actions-container {
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: flex-start; /* ou space-between */
+      }
+
       table {
         font-size: 13px;
       }
@@ -338,26 +394,10 @@
       }
     }
 
-    .novo-pedido-container {
-      text-align: right;
-      margin-bottom: 20px;
+    .button-top {
+      margin-left: auto;
     }
 
-    .btn-novo-pedido {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 10px 20px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
-    }
-
-    .btn-novo-pedido:hover {
-      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-      transform: translateY(-2px);
-    }
   </style>
 </head>
 <body>
@@ -381,18 +421,34 @@
     <div class="content">
       <h1>Lista de Pedidos (Completa)</h1>
 
-      <div class="actions-container" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 10px;">
-        <select id="filtro-status" class="filtro-select" style="padding: 10px; font-size: 16px; border-radius: 6px; border: 1px solid #ccc;">
-          <option value="">Filtrar por Status</option>
-          <option value="1">Aguardando Preparo</option>
-          <option value="2">Em Preparo</option>
-          <option value="3">Finalizado</option>
-          <option value="5">Cancelado</option>
-        </select>
+      <div class="actions-container">
 
-        <button class="btn-novo-pedido" onclick="criarNovoPedido()">
-          ➕ Criar Novo Pedido
-        </button>
+        <!-- Filtro 1 - Status com dropdown menu -->
+        <div class="dropdown">
+          <button class="dropdown-btn">Filtrar Status ▼</button>
+          <div class="dropdown-menu">
+            <label><input type="checkbox" value="1" class="status-check"> Aguardando Preparo</label>
+            <label><input type="checkbox" value="2" class="status-check"> Em Preparo</label>
+            <label><input type="checkbox" value="3" class="status-check"> Finalizado</label>
+          </div>
+        </div>
+
+        <!-- Filtro 2 - Tipo com dropdown menu -->
+        <div class="dropdown">
+          <button class="dropdown-btn">Filtrar Tipo ▼</button>
+          <div class="dropdown-menu">
+            <label>
+              <input type="checkbox" value="Retirada" class="tipo-check"> Retirada
+            </label>
+            <label>
+              <input type="checkbox" value="Entrega" class="tipo-check"> Entrega
+            </label>
+          </div>
+        </div>
+
+        <div class="button-top">
+            <button class="btn-novo-pedido" onclick="criarNovoPedido()">➕ Novo Pedido</button>
+        </div>
       </div>
 
       <div id="pedidosContainer">Carregando pedidos...</div>
@@ -436,12 +492,31 @@
       window.location.href = 'cadastro-pedido.html';
     }
 
+    /* ==================== DROPDOWNS ==================== */
+
+    document.querySelectorAll('.dropdown-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const menu = this.nextElementSibling;
+
+        // Fecha outros
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+          if (m !== menu) m.style.display = 'none';
+        });
+
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+      }
+    });
+
     const statusMap = {
       1: 'Aguardando Preparo',
       2: 'Em Preparo',
-      3: 'Finalizado',
-      4: 'Entregue',
-      5: 'Cancelado'
+      3: 'Finalizado'
     };
 
     let arrayPedidos = [];
@@ -458,7 +533,6 @@
       })
       .then(() => {
         alert(`Status do pedido #${id_pedido} atualizado para "${statusMap[novoStatus]}"`);
-        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error('Erro ao atualizar status:', err);
@@ -482,7 +556,6 @@
       })
       .then(() => {
         alert('Pedido excluído com sucesso!');
-        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error('Erro ao excluir pedido:', err);
@@ -517,7 +590,6 @@
       })
       .then(() => {
         alert('Pagamento registrado com sucesso');
-        // Não precisa recarregar aqui, o socket.io vai atualizar
       })
       .catch(err => {
         console.error(err);
@@ -555,7 +627,7 @@
 
         const itensHTML = pedido.itens.map(item => {
           const isCombo = item.tipo === 'combo';
-          const badge = isCombo ? ' <span class="combo-badge">COMBO</span>' : '';
+          const badge = isCombo ? '' : '';
           return `
             <tr>
               <td>${item.nome_produto}${badge}</td>
@@ -568,7 +640,7 @@
 
         div.innerHTML = `
           <div class="pedido-header">
-            Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
+            Pedido #<strong>${pedido.comanda}</strong> - ${pedido.nome_cliente} <br />
             Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
             Status:
             <select onchange="atualizarStatusPedido(${pedido.id_pedido}, this.value)">
@@ -649,13 +721,30 @@
         document.getElementById('pedidosContainer').textContent = 'Erro ao carregar pedidos.';
       });
 
-    document.getElementById('filtro-status').addEventListener('change', () => {
-      const filtro = document.getElementById('filtro-status').value;
-      const filtrados = filtro === ''
-        ? arrayPedidos
-        : arrayPedidos.filter(p => String(p.id_status) === filtro);
+    /* ==================== FILTRAGEM USANDO CHECKBOXES ==================== */
+
+    function aplicarFiltros() {
+      const statusSelecionados = [...document.querySelectorAll('.status-check:checked')]
+        .map(i => i.value);
+
+      const tiposSelecionados = [...document.querySelectorAll('.tipo-check:checked')]
+        .map(i => i.value);
+
+      let filtrados = arrayPedidos;
+
+      if (statusSelecionados.length > 0) {
+        filtrados = filtrados.filter(p => statusSelecionados.includes(String(p.id_status)));
+      }
+
+      if (tiposSelecionados.length > 0) {
+        filtrados = filtrados.filter(p => tiposSelecionados.includes(p.tipo_entrega));
+      }
+
       renderizarPedidos(filtrados);
-    });
+    }
+
+    document.querySelectorAll('.status-check, .tipo-check')
+      .forEach(cb => cb.addEventListener('change', aplicarFiltros));
   </script>
 </body>
 </html>

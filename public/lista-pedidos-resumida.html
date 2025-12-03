@@ -209,7 +209,7 @@
 
           div.innerHTML = `
             <div class="pedido-header">
-              Pedido #<strong>${pedido.comanda}</strong> - Cliente: ${pedido.nome_cliente} <br />
+              Pedido #<strong>${pedido.comanda}</strong> - ${pedido.nome_cliente} <br />
               Data: ${new Date(pedido.data_hora).toLocaleString()}<br />
               Status: <strong>${statusTexto}</strong> - Tipo: ${pedido.tipo_entrega}
             </div>
